@@ -148,6 +148,7 @@ members = [
   "cranelift/isle/islec",
   "cranelift/isle/veri/veri_engine",
   "cranelift/isle/veri/veri_ir",
+  "cranelift/isle/verifine",
   "cranelift/serde",
   "crates/bench-api",
   "crates/c-api/artifact",

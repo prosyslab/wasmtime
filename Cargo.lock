@@ -3821,6 +3821,15 @@ name = "veri_ir"
 version = "0.1.0"
 
 [[package]]
+name = "verifine"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "cranelift-isle",
+ "env_logger 0.11.5",
+]
+
+[[package]]
 name = "verify-component-adapter"
 version = "32.0.0"
 dependencies = [
