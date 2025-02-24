@@ -114,6 +114,7 @@ pub fn get_isle_compilations(
                     src_opts.join("spaceship.isle"),
                     src_opts.join("spectre.isle"),
                     src_opts.join("vector.isle"),
+                    src_opts.join("transopt.isle"),
                 ],
                 untracked_inputs: vec![clif_opt_isle],
             },
