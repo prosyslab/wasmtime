@@ -2001,6 +2001,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "isle-search"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "cranelift-isle",
+ "env_logger 0.11.5",
+]
+
+[[package]]
 name = "islec"
 version = "0.0.0"
 dependencies = [
@@ -3819,15 +3828,6 @@ dependencies = [
 [[package]]
 name = "veri_ir"
 version = "0.1.0"
-
-[[package]]
-name = "verifine"
-version = "0.1.0"
-dependencies = [
- "clap",
- "cranelift-isle",
- "env_logger 0.11.5",
-]
 
 [[package]]
 name = "verify-component-adapter"

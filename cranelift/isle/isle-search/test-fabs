@@ -1,0 +1,22 @@
+[Definition Explanation]
+* source code: (decl fabs (Type Value) Value)
+* kind: declaration
+* location: clif_opt.isle:1352
+[Definition Explanation]
+* source code: (fabs ty x)
+* kind: extractor
+* location: clif_opt.isle:1354
+[Definition Explanation]
+* source code: (rule (fabs ty x)
+    (make_inst ty (InstructionData.Unary (Opcode.Fabs) x))
+)
+* kind: rule definition
+* location: clif_opt.isle:1357
+
+[Term Explantion]
+ * arg0: Type (primitive type)
+ * arg1: Value (primitive type)
+ * ret: Value (primitive type)
+ * TermFlags { pure: false, multi: false, partial: false }
+ * internal constructor
+ * internal extractor

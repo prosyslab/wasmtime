@@ -1,0 +1,22 @@
+[Definition Explanation]
+* source code: (type FloatCC extern
+    (enum
+        Equal
+        GreaterThan
+        GreaterThanOrEqual
+        LessThan
+        LessThanOrEqual
+        NotEqual
+        Ordered
+        OrderedNotEqual
+        Unordered
+        UnorderedOrEqual
+        UnorderedOrGreaterThan
+        UnorderedOrGreaterThanOrEqual
+        UnorderedOrLessThan
+        UnorderedOrLessThanOrEqual
+    )
+)
+* kind: type
+* location: clif_opt.isle:44
+

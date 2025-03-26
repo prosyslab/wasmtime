@@ -1,0 +1,18 @@
+[Definition Explanation]
+* source code: (type IntCC extern
+    (enum
+        Equal
+        NotEqual
+        SignedGreaterThan
+        SignedGreaterThanOrEqual
+        SignedLessThan
+        SignedLessThanOrEqual
+        UnsignedGreaterThan
+        UnsignedGreaterThanOrEqual
+        UnsignedLessThan
+        UnsignedLessThanOrEqual
+    )
+)
+* kind: type
+* location: clif_opt.isle:65
+

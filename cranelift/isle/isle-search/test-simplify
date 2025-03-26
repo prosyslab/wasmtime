@@ -1,0 +1,583 @@
+[Definition Explanation]
+* source code: (rule (simplify
+       (iadd (fits_in_64 ty)
+             (iconst ty (u64_from_imm64 k1))
+             (iconst ty (u64_from_imm64 k2))))
+      (subsume (iconst ty (imm64_masked ty (u64_add k1 k2)))))
+* kind: rule definition
+* location: cprop.isle:2
+[Definition Explanation]
+* source code: (rule (simplify
+       (isub (fits_in_64 ty)
+             (iconst ty (u64_from_imm64 k1))
+             (iconst ty (u64_from_imm64 k2))))
+      (subsume (iconst ty (imm64_masked ty (u64_sub k1 k2)))))
+* kind: rule definition
+* location: cprop.isle:8
+[Definition Explanation]
+* source code: (rule (simplify
+       (imul (fits_in_64 ty)
+             (iconst ty (u64_from_imm64 k1))
+             (iconst ty (u64_from_imm64 k2))))
+      (subsume (iconst ty (imm64_masked ty (u64_mul k1 k2)))))
+* kind: rule definition
+* location: cprop.isle:14
+[Definition Explanation]
+* source code: (rule (simplify
+       (sdiv (fits_in_64 ty)
+             (iconst ty (u64_from_imm64 k1))
+             (iconst ty (u64_from_imm64 k2))))
+      (if-let d (u64_sdiv k1 k2))
+      (subsume (iconst ty (imm64_masked ty d))))
+* kind: rule definition
+* location: cprop.isle:20
+[Definition Explanation]
+* source code: (rule (simplify
+       (udiv (fits_in_64 ty)
+             (iconst ty (u64_from_imm64 k1))
+             (iconst ty (u64_from_imm64 k2))))
+      (if-let d (u64_udiv k1 k2))
+      (subsume (iconst ty (imm64_masked ty d))))
+* kind: rule definition
+* location: cprop.isle:27
+[Definition Explanation]
+* source code: (rule (simplify
+       (bor (fits_in_64 ty)
+            (iconst ty (u64_from_imm64 k1))
+            (iconst ty (u64_from_imm64 k2))))
+      (subsume (iconst ty (imm64_masked ty (u64_or k1 k2)))))
+* kind: rule definition
+* location: cprop.isle:34
+[Definition Explanation]
+* source code: (rule (simplify
+       (band (fits_in_64 ty)
+            (iconst ty (u64_from_imm64 k1))
+            (iconst ty (u64_from_imm64 k2))))
+      (subsume (iconst ty (imm64_masked ty (u64_and k1 k2)))))
+* kind: rule definition
+* location: cprop.isle:40
+[Definition Explanation]
+* source code: (rule (simplify
+       (bxor (fits_in_64 ty)
+            (iconst ty (u64_from_imm64 k1))
+            (iconst ty (u64_from_imm64 k2))))
+      (subsume (iconst ty (imm64_masked ty (u64_xor k1 k2)))))
+* kind: rule definition
+* location: cprop.isle:46
+[Definition Explanation]
+* source code: (rule (simplify
+       (bnot (fits_in_64 ty)
+            (iconst ty (u64_from_imm64 k))))
+      (subsume (iconst ty (imm64_masked ty (u64_not k)))))
+* kind: rule definition
+* location: cprop.isle:52
+[Definition Explanation]
+* source code: (rule (simplify (ishl (fits_in_64 ty)
+                      (iconst ty k1)
+                      (iconst _ k2)))
+      (subsume (iconst ty (imm64_shl ty k1 k2))))
+* kind: rule definition
+* location: cprop.isle:57
+[Definition Explanation]
+* source code: (rule (simplify (ushr (fits_in_64 ty)
+                      (iconst ty k1)
+                      (iconst _ k2)))
+      (subsume (iconst ty (imm64_ushr ty k1 k2))))
+* kind: rule definition
+* location: cprop.isle:62
+[Definition Explanation]
+* source code: (rule (simplify (sshr (fits_in_64 ty)
+                      (iconst ty k1)
+                      (iconst _ k2)))
+      (subsume (iconst ty (imm64_sshr ty k1 k2))))
+* kind: rule definition
+* location: cprop.isle:67
+[Definition Explanation]
+* source code: (rule (simplify (ireduce narrow (iconst (fits_in_64 _) (u64_from_imm64 imm))))
+      (subsume (iconst narrow (imm64_masked narrow imm))))
+* kind: rule definition
+* location: cprop.isle:72
+[Definition Explanation]
+* source code: (rule (simplify (uextend (fits_in_64 wide) (iconst_u narrow k)))
+      (subsume (iconst_u wide k)))
+* kind: rule definition
+* location: cprop.isle:77
+[Definition Explanation]
+* source code: (rule (simplify (sextend (fits_in_64 wide) (iconst_s narrow k)))
+      (subsume (iconst_s wide k)))
+* kind: rule definition
+* location: cprop.isle:79
+[Definition Explanation]
+* source code: (rule (simplify
+       (icmp result_ty
+            cc
+            (iconst ty k1)
+            (iconst ty k2)))
+      (subsume (iconst result_ty (imm64_icmp ty cc k1 k2))))
+* kind: rule definition
+* location: cprop.isle:82
+[Definition Explanation]
+* source code: (rule (simplify
+       (iadd ty k @ (iconst ty _) x))
+      (iadd ty x k))
+* kind: rule definition
+* location: cprop.isle:94
+[Definition Explanation]
+* source code: (rule (simplify
+       (isub ty k @ (iconst ty _) x))
+      (ineg ty (isub ty x k)))
+* kind: rule definition
+* location: cprop.isle:99
+[Definition Explanation]
+* source code: (rule (simplify
+       (imul ty k @ (iconst ty _) x))
+      (imul ty x k))
+* kind: rule definition
+* location: cprop.isle:102
+[Definition Explanation]
+* source code: (rule (simplify
+       (bor ty k @ (iconst ty _) x))
+      (bor ty x k))
+* kind: rule definition
+* location: cprop.isle:106
+[Definition Explanation]
+* source code: (rule (simplify
+       (band ty k @ (iconst ty _) x))
+      (band ty x k))
+* kind: rule definition
+* location: cprop.isle:109
+[Definition Explanation]
+* source code: (rule (simplify
+       (bxor ty k @ (iconst ty _) x))
+      (bxor ty x k))
+* kind: rule definition
+* location: cprop.isle:112
+[Definition Explanation]
+* source code: (rule (simplify
+       (icmp ty cc k @ (iconst _ _) x))
+      (icmp ty (intcc_swap_args cc) x k))
+* kind: rule definition
+* location: cprop.isle:116
+[Definition Explanation]
+* source code: (rule (simplify
+       (iadd ty (iadd ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+      (iadd ty x (iadd ty k1 k2)))
+* kind: rule definition
+* location: cprop.isle:125
+[Definition Explanation]
+* source code: (rule (simplify (isub ty
+                      (isub ty x (iconst ty (u64_from_imm64 k1)))
+                      (iconst ty (u64_from_imm64 k2))))
+      (isub ty x (iconst ty (imm64_masked ty (u64_add k1 k2)))))
+* kind: rule definition
+* location: cprop.isle:135
+[Definition Explanation]
+* source code: (rule (simplify (isub ty
+                      (isub ty (iconst ty (u64_from_imm64 k1)) x)
+                      (iconst ty (u64_from_imm64 k2))))
+      (isub ty (iconst ty (imm64_masked ty (u64_sub k1 k2))) x))
+* kind: rule definition
+* location: cprop.isle:139
+[Definition Explanation]
+* source code: (rule (simplify (isub ty
+                      (iadd ty x (iconst ty (u64_from_imm64 k1)))
+                      (iconst ty (u64_from_imm64 k2))))
+      (isub ty x (iconst ty (imm64_masked ty (u64_sub k2 k1)))))
+* kind: rule definition
+* location: cprop.isle:143
+[Definition Explanation]
+* source code: (rule (simplify (iadd ty
+                      (isub ty x (iconst ty (u64_from_imm64 k1)))
+                      (iconst ty (u64_from_imm64 k2))))
+      (iadd ty x (iconst ty (imm64_masked ty (u64_sub k2 k1)))))
+* kind: rule definition
+* location: cprop.isle:147
+[Definition Explanation]
+* source code: (rule (simplify (iadd ty
+                      (isub ty (iconst ty (u64_from_imm64 k1)) x)
+                      (iconst ty (u64_from_imm64 k2))))
+      (isub ty (iconst ty (imm64_masked ty (u64_add k1 k2))) x))
+* kind: rule definition
+* location: cprop.isle:151
+[Definition Explanation]
+* source code: (rule (simplify
+       (imul ty (imul ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+      (imul ty x (imul ty k1 k2)))
+* kind: rule definition
+* location: cprop.isle:156
+[Definition Explanation]
+* source code: (rule (simplify
+       (bor ty (bor ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+      (bor ty x (bor ty k1 k2)))
+* kind: rule definition
+* location: cprop.isle:159
+[Definition Explanation]
+* source code: (rule (simplify
+       (band ty (band ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+      (band ty x (band ty k1 k2)))
+* kind: rule definition
+* location: cprop.isle:162
+[Definition Explanation]
+* source code: (rule (simplify
+       (bxor ty (bxor ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+      (bxor ty x (bxor ty k1 k2)))
+* kind: rule definition
+* location: cprop.isle:165
+[Definition Explanation]
+* source code: (rule (simplify (select ty (iconst_u _ (u64_nonzero _)) x _))
+      (subsume x))
+* kind: rule definition
+* location: cprop.isle:169
+[Definition Explanation]
+* source code: (rule (simplify (select ty (iconst_u _ 0) _ y))
+      (subsume y))
+* kind: rule definition
+* location: cprop.isle:171
+[Definition Explanation]
+* source code: (rule (simplify (isub ty x (iconst_s ty k)))
+      (if-let true (u64_lt (i64_as_u64 (i64_neg k)) (i64_as_u64 k)))
+      (iadd ty x (iconst ty (imm64_masked ty (i64_as_u64 (i64_neg k))))))
+* kind: rule definition
+* location: cprop.isle:180
+[Definition Explanation]
+* source code: (rule (simplify (splat dst (iconst $I8 n)))
+      (vconst dst (splat8 (u64_uextend_imm64 $I8 n))))
+* kind: rule definition
+* location: cprop.isle:186
+[Definition Explanation]
+* source code: (rule (simplify (splat dst (iconst $I16 n)))
+      (vconst dst (splat16 (u64_uextend_imm64 $I16 n))))
+* kind: rule definition
+* location: cprop.isle:188
+[Definition Explanation]
+* source code: (rule (simplify (splat dst (iconst $I32 n)))
+      (vconst dst (splat32 (u64_uextend_imm64 $I32 n))))
+* kind: rule definition
+* location: cprop.isle:190
+[Definition Explanation]
+* source code: (rule (simplify (splat dst (iconst $I64 n)))
+      (vconst dst (splat64 (u64_uextend_imm64 $I64 n))))
+* kind: rule definition
+* location: cprop.isle:192
+[Definition Explanation]
+* source code: (rule (simplify (splat dst (f32const _ (u32_from_ieee32 n))))
+      (vconst dst (splat32 n)))
+* kind: rule definition
+* location: cprop.isle:194
+[Definition Explanation]
+* source code: (rule (simplify (splat dst (f64const _ (u64_from_ieee64 n))))
+      (vconst dst (splat64 n)))
+* kind: rule definition
+* location: cprop.isle:196
+[Definition Explanation]
+* source code: (rule (simplify (ishl ty (ishl ty a@(iconst _ _) b) c@(iconst _ _)))
+      (ishl ty (ishl ty a c) b))
+* kind: rule definition
+* location: cprop.isle:211
+[Definition Explanation]
+* source code: (rule (simplify (ushr ty (ushr ty a@(iconst _ _) b) c@(iconst _ _)))
+      (ushr ty (ushr ty a c) b))
+* kind: rule definition
+* location: cprop.isle:213
+[Definition Explanation]
+* source code: (rule (simplify (sshr ty (sshr ty a@(iconst _ _) b) c@(iconst _ _)))
+      (sshr ty (sshr ty a c) b))
+* kind: rule definition
+* location: cprop.isle:215
+[Definition Explanation]
+* source code: (rule (simplify (iadd ty
+                      (iadd ty a b@(iconst _ _))
+                      (iadd ty c d@(iconst _ _))))
+      (iadd ty (iadd ty a c) (iadd ty b d)))
+* kind: rule definition
+* location: cprop.isle:224
+[Definition Explanation]
+* source code: (rule (simplify (imul ty
+                      (imul ty a b@(iconst _ _))
+                      (imul ty c d@(iconst _ _))))
+      (imul ty (imul ty a c) (imul ty b d)))
+* kind: rule definition
+* location: cprop.isle:228
+[Definition Explanation]
+* source code: (rule (simplify (band ty
+                      (band ty a b@(iconst _ _))
+                      (band ty c d@(iconst _ _))))
+      (band ty (band ty a c) (band ty b d)))
+* kind: rule definition
+* location: cprop.isle:232
+[Definition Explanation]
+* source code: (rule (simplify (bor ty
+                      (bor ty a b@(iconst _ _))
+                      (bor ty c d@(iconst _ _))))
+      (bor ty (bor ty a c) (bor ty b d)))
+* kind: rule definition
+* location: cprop.isle:236
+[Definition Explanation]
+* source code: (rule (simplify (bxor ty
+                      (bxor ty a b@(iconst _ _))
+                      (bxor ty c d@(iconst _ _))))
+      (bxor ty (bxor ty a c) (bxor ty b d)))
+* kind: rule definition
+* location: cprop.isle:240
+[Definition Explanation]
+* source code: (rule (simplify (fcvt_from_uint $F32 (iconst_u _ n)))
+      (f32const $F32 (f32_from_uint n)))
+* kind: rule definition
+* location: cprop.isle:247
+[Definition Explanation]
+* source code: (rule (simplify (fcvt_from_uint $F64 (iconst_u _ n)))
+      (f64const $F64 (f64_from_uint n)))
+* kind: rule definition
+* location: cprop.isle:249
+[Definition Explanation]
+* source code: (rule (simplify (fcvt_from_sint $F32 (iconst_s _ n)))
+      (f32const $F32 (f32_from_sint n)))
+* kind: rule definition
+* location: cprop.isle:251
+[Definition Explanation]
+* source code: (rule (simplify (fcvt_from_sint $F64 (iconst_s _ n)))
+      (f64const $F64 (f64_from_sint n)))
+* kind: rule definition
+* location: cprop.isle:253
+[Definition Explanation]
+* source code: (rule (simplify (bswap $I16 (iconst ty (u64_from_imm64 n))))
+      (subsume (iconst $I16 (imm64 (u64_bswap16 n)))))
+* kind: rule definition
+* location: cprop.isle:266
+[Definition Explanation]
+* source code: (rule (simplify (bswap $I32 (iconst ty (u64_from_imm64 n))))
+      (subsume (iconst $I32 (imm64 (u64_bswap32 n)))))
+* kind: rule definition
+* location: cprop.isle:268
+[Definition Explanation]
+* source code: (rule (simplify (bswap $I64 (iconst ty (u64_from_imm64 n))))
+      (subsume (iconst $I64 (imm64 (u64_bswap64 n)))))
+* kind: rule definition
+* location: cprop.isle:270
+[Definition Explanation]
+* source code: (rule (simplify (fadd $F32 (f32const $F32 lhs) (f32const $F32 rhs)))
+      (if-let r (f32_add lhs rhs))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:289
+[Definition Explanation]
+* source code: (rule (simplify (fadd $F64 (f64const $F64 lhs) (f64const $F64 rhs)))
+      (if-let r (f64_add lhs rhs))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:292
+[Definition Explanation]
+* source code: (rule (simplify (fsub $F32 (f32const $F32 lhs) (f32const $F32 rhs)))
+      (if-let r (f32_sub lhs rhs))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:296
+[Definition Explanation]
+* source code: (rule (simplify (fsub $F64 (f64const $F64 lhs) (f64const $F64 rhs)))
+      (if-let r (f64_sub lhs rhs))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:299
+[Definition Explanation]
+* source code: (rule (simplify (fmul $F32 (f32const $F32 lhs) (f32const $F32 rhs)))
+      (if-let r (f32_mul lhs rhs))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:303
+[Definition Explanation]
+* source code: (rule (simplify (fmul $F64 (f64const $F64 lhs) (f64const $F64 rhs)))
+      (if-let r (f64_mul lhs rhs))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:306
+[Definition Explanation]
+* source code: (rule (simplify (fdiv $F32 (f32const $F32 lhs) (f32const $F32 rhs)))
+      (if-let r (f32_div lhs rhs))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:310
+[Definition Explanation]
+* source code: (rule (simplify (fdiv $F64 (f64const $F64 lhs) (f64const $F64 rhs)))
+      (if-let r (f64_div lhs rhs))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:313
+[Definition Explanation]
+* source code: (rule (simplify (sqrt $F32 (f32const $F32 n)))
+      (if-let r (f32_sqrt n))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:317
+[Definition Explanation]
+* source code: (rule (simplify (sqrt $F64 (f64const $F64 n)))
+      (if-let r (f64_sqrt n))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:320
+[Definition Explanation]
+* source code: (rule (simplify (ceil $F32 (f32const $F32 n)))
+      (if-let r (f32_ceil n))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:324
+[Definition Explanation]
+* source code: (rule (simplify (ceil $F64 (f64const $F64 n)))
+      (if-let r (f64_ceil n))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:327
+[Definition Explanation]
+* source code: (rule (simplify (floor $F32 (f32const $F32 n)))
+      (if-let r (f32_floor n))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:331
+[Definition Explanation]
+* source code: (rule (simplify (floor $F64 (f64const $F64 n)))
+      (if-let r (f64_floor n))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:334
+[Definition Explanation]
+* source code: (rule (simplify (trunc $F32 (f32const $F32 n)))
+      (if-let r (f32_trunc n))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:338
+[Definition Explanation]
+* source code: (rule (simplify (trunc $F64 (f64const $F64 n)))
+      (if-let r (f64_trunc n))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:341
+[Definition Explanation]
+* source code: (rule (simplify (nearest $F32 (f32const $F32 n)))
+      (if-let r (f32_nearest n))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:345
+[Definition Explanation]
+* source code: (rule (simplify (nearest $F64 (f64const $F64 n)))
+      (if-let r (f64_nearest n))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:348
+[Definition Explanation]
+* source code: (rule (simplify (fmin $F16 (f16const $F16 n) (f16const $F16 m)))
+      (if-let r (f16_min n m))
+      (subsume (f16const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:352
+[Definition Explanation]
+* source code: (rule (simplify (fmin $F32 (f32const $F32 n) (f32const $F32 m)))
+      (if-let r (f32_min n m))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:355
+[Definition Explanation]
+* source code: (rule (simplify (fmin $F64 (f64const $F64 n) (f64const $F64 m)))
+      (if-let r (f64_min n m))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:358
+[Definition Explanation]
+* source code: (rule (simplify (fmin $F128 (f128const $F128 (ieee128_constant n)) (f128const $F128 (ieee128_constant m))))
+      (if-let r (f128_min n m))
+      (subsume (f128const $F128 (ieee128_constant r))))
+* kind: rule definition
+* location: cprop.isle:361
+[Definition Explanation]
+* source code: (rule (simplify (fmax $F16 (f16const $F16 n) (f16const $F16 m)))
+      (if-let r (f16_max n m))
+      (subsume (f16const $F16 r)))
+* kind: rule definition
+* location: cprop.isle:365
+[Definition Explanation]
+* source code: (rule (simplify (fmax $F32 (f32const $F32 n) (f32const $F32 m)))
+      (if-let r (f32_max n m))
+      (subsume (f32const $F32 r)))
+* kind: rule definition
+* location: cprop.isle:368
+[Definition Explanation]
+* source code: (rule (simplify (fmax $F64 (f64const $F64 n) (f64const $F64 m)))
+      (if-let r (f64_max n m))
+      (subsume (f64const $F64 r)))
+* kind: rule definition
+* location: cprop.isle:371
+[Definition Explanation]
+* source code: (rule (simplify (fmax $F128 (f128const $F128 (ieee128_constant n)) (f128const $F128 (ieee128_constant m))))
+      (if-let r (f128_max n m))
+      (subsume (f128const $F128 (ieee128_constant r))))
+* kind: rule definition
+* location: cprop.isle:374
+[Definition Explanation]
+* source code: (rule (simplify (fneg $F16 (f16const $F16 n)))
+      (subsume (f16const $F16 (f16_neg n))))
+* kind: rule definition
+* location: cprop.isle:378
+[Definition Explanation]
+* source code: (rule (simplify (fneg $F32 (f32const $F32 n)))
+      (subsume (f32const $F32 (f32_neg n))))
+* kind: rule definition
+* location: cprop.isle:380
+[Definition Explanation]
+* source code: (rule (simplify (fneg $F64 (f64const $F64 n)))
+      (subsume (f64const $F64 (f64_neg n))))
+* kind: rule definition
+* location: cprop.isle:382
+[Definition Explanation]
+* source code: (rule (simplify (fneg $F128 (f128const $F128 (ieee128_constant n))))
+      (subsume (f128const $F128 (ieee128_constant (f128_neg n)))))
+* kind: rule definition
+* location: cprop.isle:384
+[Definition Explanation]
+* source code: (rule (simplify (fabs $F16 (f16const $F16 n)))
+      (subsume (f16const $F16 (f16_abs n))))
+* kind: rule definition
+* location: cprop.isle:387
+[Definition Explanation]
+* source code: (rule (simplify (fabs $F32 (f32const $F32 n)))
+      (subsume (f32const $F32 (f32_abs n))))
+* kind: rule definition
+* location: cprop.isle:389
+[Definition Explanation]
+* source code: (rule (simplify (fabs $F64 (f64const $F64 n)))
+      (subsume (f64const $F64 (f64_abs n))))
+* kind: rule definition
+* location: cprop.isle:391
+[Definition Explanation]
+* source code: (rule (simplify (fabs $F128 (f128const $F128 (ieee128_constant n))))
+      (subsume (f128const $F128 (ieee128_constant (f128_abs n)))))
+* kind: rule definition
+* location: cprop.isle:393
+[Definition Explanation]
+* source code: (rule (simplify (fcopysign $F16 (f16const $F16 n) (f16const $F16 m)))
+      (subsume (f16const $F16 (f16_copysign n m))))
+* kind: rule definition
+* location: cprop.isle:396
+[Definition Explanation]
+* source code: (rule (simplify (fcopysign $F32 (f32const $F32 n) (f32const $F32 m)))
+      (subsume (f32const $F32 (f32_copysign n m))))
+* kind: rule definition
+* location: cprop.isle:398
+[Definition Explanation]
+* source code: (rule (simplify (fcopysign $F64 (f64const $F64 n) (f64const $F64 m)))
+      (subsume (f64const $F64 (f64_copysign n m))))
+* kind: rule definition
+* location: cprop.isle:400
+[Definition Explanation]
+* source code: (rule (simplify (fcopysign $F128 (f128const $F128 (ieee128_constant n)) (f128const $F128 (ieee128_constant m))))
+      (subsume (f128const $F128 (ieee128_constant (f128_copysign n m)))))
+* kind: rule definition
+* location: cprop.isle:402
+[Definition Explanation]
+* source code: (decl multi simplify (Value) Value)
+* kind: declaration
+* location: prelude_opt.isle:51
+
+[Term Explantion]
+ * arg0: Value (primitive type)
+ * ret: Value (primitive type)
+ * TermFlags { pure: false, multi: true, partial: false }
+ * internal constructor
+ * not an extractor

@@ -1,0 +1,23 @@
+[Definition Explanation]
+* source code: (decl iconst (Type Imm64) Value)
+* kind: declaration
+* location: clif_opt.isle:713
+[Definition Explanation]
+* source code: (iconst ty N)
+* kind: extractor
+* location: clif_opt.isle:715
+[Definition Explanation]
+* source code: (rule (iconst ty N)
+    (make_inst ty (InstructionData.UnaryImm (Opcode.Iconst) N))
+)
+* kind: rule definition
+* location: clif_opt.isle:718
+
+[Term Explantion]
+ * arg0: Type (primitive type)
+ * arg1: Imm64 (primitive type)
+ * ret: Value (primitive type)
+ * TermFlags { pure: false, multi: false, partial: false }
+ * internal constructor
+ * internal extractor
+ * extractor template: Term { sym: Ident("inst_data", Pos { file: 3, offset: 20230 }), args: [MacroArg { index: 0, pos: Pos { file: 3, offset: 20240 } }, Term { sym: Ident("InstructionData.UnaryImm", Pos { file: 3, offset: 20244 }), args: [Term { sym: Ident("Opcode.Iconst", Pos { file: 3, offset: 20270 }), args: [], pos: Pos { file: 3, offset: 20269 } }, MacroArg { index: 1, pos: Pos { file: 3, offset: 20285 } }], pos: Pos { file: 3, offset: 20243 } }], pos: Pos { file: 3, offset: 20229 } }
