@@ -284,25 +284,21 @@ fn search_by_identifier(
     let mut examples = Vec::new();
     for d in defs {
         match d {
-            Def::Rule(_) => {
-                let (file, offset) = get_pos(d).expect("failed to get position");
-                let source_code = files.file_text(file).unwrap();
-                let linemap = files.file_line_map(file).unwrap();
-                let line = linemap.line(offset);
-                let linepos = linemap.get(line - 1).unwrap();
-                let sexp = match_first_sexp(source_code.chars().skip(*linepos));
-                // for ti in &term_ids {
-                //     let term = terms.terms[ti.0].clone();
-                //     let term_name = types.syms[term.name.0].clone();
-                //     if sexp.contains(&term_name) {
-                //         println!("[Usage ({})]", term_name);
-                //         println!("{}", sexp);
-                //     }
-                // }
+            Def::Rule(rule) => {
+                rule.pattern.root_term().map(|rt| {
+                    if rt.0 == "simplify" {
+                        let (file, offset) = get_pos(d).expect("failed to get position");
+                        let source_code = files.file_text(file).unwrap();
+                        let linemap = files.file_line_map(file).unwrap();
+                        let line = linemap.line(offset);
+                        let linepos = linemap.get(line - 1).unwrap();
+                        let sexp = match_first_sexp(source_code.chars().skip(*linepos));
 
-                if sexp.contains(identifier) {
-                    examples.push(sexp);
-                }
+                        if sexp.contains(identifier) {
+                            examples.push(sexp);
+                        }
+                    }
+                });
             }
             _ => {}
         }
