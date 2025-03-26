@@ -23,13 +23,13 @@ struct Args {
 fn search_definitions<'a>(ident: &'a str, defs: &'a [Def]) -> Vec<&'a Def> {
     defs.iter()
         .filter(|def| match def {
-            Def::Type(typ) => typ.name.0 == ident,
+            Def::Type(typ) if typ.name.0.contains(ident) => true,
             Def::Rule(rule) => match rule.pattern.root_term() {
-                Some(rt) => rt.0 == ident,
-                None => false,
+                Some(rt) if rt.0.contains(ident) => true,
+                _ => false,
             },
-            Def::Extractor(extractor) => extractor.term.0 == ident,
-            Def::Decl(decl) => decl.term.0 == ident,
+            Def::Extractor(extractor) if extractor.term.0.contains(ident) => true,
+            Def::Decl(decl) if decl.term.0.contains(ident) => true,
             _ => false,
         })
         .collect::<Vec<_>>()
@@ -59,8 +59,8 @@ fn explain_type(typ: &Type, types: &TypeEnv) -> String {
     }
 }
 
-fn explain_term(term: &Term, types: &TypeEnv, terms: &TermEnv) {
-    println!("[Term Explantion]");
+fn explain_term(term: &Term, types: &TypeEnv, _terms: &TermEnv) {
+    println!("[Term Explantion ({})]", types.syms[term.name.0].clone());
     // println!("[Argument Types]");
     term.arg_tys.iter().enumerate().for_each(|(i, arg)| {
         let ty = &types.types[arg.0];
@@ -76,7 +76,7 @@ fn explain_term(term: &Term, types: &TypeEnv, terms: &TermEnv) {
 
     use cranelift_isle::sema::TermKind::*;
     match &term.kind {
-        EnumVariant { variant } => todo!(),
+        EnumVariant { .. } => todo!(),
         Decl {
             flags,
             constructor_kind,
@@ -98,14 +98,14 @@ fn explain_term(term: &Term, types: &TypeEnv, terms: &TermEnv) {
 
             match extractor_kind {
                 Some(kind) => match kind {
-                    cranelift_isle::sema::ExtractorKind::InternalExtractor { template } => {
+                    cranelift_isle::sema::ExtractorKind::InternalExtractor { .. } => {
                         println!(" * internal extractor")
                         // println!(" * extractor template: {:?}", template)
                     }
                     cranelift_isle::sema::ExtractorKind::ExternalExtractor {
                         name,
                         infallible,
-                        pos,
+                        pos: _,
                     } => {
                         if *infallible {
                             println!(" * external extractor: {} (infallible)", types.syms[name.0])
@@ -175,12 +175,22 @@ fn explain_definition(def: &Def, files: &Files) {
     };
 
     let sexp = match_first_sexp(source_code.chars().skip(*linepos));
-    println!("[Definition Explanation]");
+    println!("[Definition ({})]", identifier_of_def(def));
     println!("* source code: {}", sexp);
     println!("* kind: {}", def_kind);
     println!("* location: {}:{}", basename.to_str().unwrap(), line);
 
     // eprintln!("* {:?}", def);
+}
+
+fn identifier_of_def(def: &Def) -> String {
+    match def {
+        Def::Type(ty) => ty.name.0.clone(),
+        Def::Rule(rule) => rule.pattern.root_term().unwrap().0.clone(),
+        Def::Extractor(extractor) => extractor.term.0.clone(),
+        Def::Decl(decl) => decl.term.0.clone(),
+        _ => "".to_string(),
+    }
 }
 
 // (decl iconst (Type Imm64) Value)
@@ -191,7 +201,8 @@ fn explain_definition(def: &Def, files: &Files) {
 // (rule (iconst ty N)
 //     (make_inst ty (InstructionData.UnaryImm (Opcode.Iconst) N))
 // )
-fn lookup_def(def: &Def, types: &TypeEnv, terms: &TermEnv, files: &Files) {
+#[allow(dead_code)]
+fn lookup_def(def: &Def, types: &TypeEnv, terms: &TermEnv, _files: &Files) {
     match def {
         Def::Type(typ) => {
             let tid = types
@@ -247,27 +258,54 @@ fn search_by_identifier(
     terms: &TermEnv,
     files: &Files,
 ) -> Result<(), ()> {
-    let defs = search_definitions(identifer, &defs);
-    let term_ids = defs
+    let founds = search_definitions(identifer, &defs);
+    let term_ids = founds
         .iter()
         .filter_map(|def| termid_of_def(def, &types, &terms))
         .collect::<HashSet<_>>();
 
-    if defs.is_empty() {
+    if founds.is_empty() {
         eprintln!("No definitions found for {}", identifer);
         return Err(());
     }
 
-    for d in defs {
+    for d in founds {
         explain_definition(d, &files);
         // lookup_def(d, &types, &terms, &files);
     }
 
     println!();
 
-    for ti in term_ids {
+    for ti in &term_ids {
         let term = terms.terms[ti.0].clone();
         explain_term(&term, &types, &terms);
+    }
+
+    println!();
+
+    // find examples of the term
+
+    for d in defs {
+        match d {
+            Def::Rule(_) => {
+                let (file, offset) = get_pos(d).expect("failed to get position");
+                let source_code = files.file_text(file).unwrap();
+                let linemap = files.file_line_map(file).unwrap();
+                let line = linemap.line(offset);
+                let linepos = linemap.get(line - 1).unwrap();
+                let sexp = match_first_sexp(source_code.chars().skip(*linepos));
+
+                for ti in &term_ids {
+                    let term = terms.terms[ti.0].clone();
+                    let term_name = types.syms[term.name.0].clone();
+                    if sexp.contains(&term_name) {
+                        println!("[Usage ({})]", term_name);
+                        println!("{}", sexp);
+                    }
+                }
+            }
+            _ => {}
+        }
     }
 
     Ok(())
