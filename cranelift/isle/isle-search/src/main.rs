@@ -246,7 +246,7 @@ fn search_by_identifier(
     types: &TypeEnv,
     terms: &TermEnv,
     files: &Files,
-) {
+) -> Result<(), ()> {
     let defs = search_definitions(identifer, &defs);
     let term_ids = defs
         .iter()
@@ -254,8 +254,8 @@ fn search_by_identifier(
         .collect::<HashSet<_>>();
 
     if defs.is_empty() {
-        println!("No definitions found for {}", identifer);
-        return;
+        eprintln!("No definitions found for {}", identifer);
+        return Err(());
     }
 
     for d in defs {
@@ -269,9 +269,11 @@ fn search_by_identifier(
         let term = terms.terms[ti.0].clone();
         explain_term(&term, &types, &terms);
     }
+
+    Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), ()> {
     let args = Args::parse();
     let files = Files::from_paths(args.inputs).expect("failed to read files");
     let (types, terms, defs) = compile::create_envs(
@@ -285,8 +287,9 @@ fn main() {
 
     match args.identifier {
         Some(ref ident) => {
-            search_by_identifier(ident, &defs, &types, &terms, &files);
+            search_by_identifier(ident, &defs, &types, &terms, &files)?;
         }
         None => {}
     }
+    Ok(())
 }
