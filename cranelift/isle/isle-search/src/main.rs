@@ -252,28 +252,26 @@ fn termid_of_def(def: &Def, types: &TypeEnv, terms: &TermEnv) -> Option<TermId> 
 }
 
 fn search_by_identifier(
-    identifer: &str,
+    identifier: &str,
     defs: &[Def],
     types: &TypeEnv,
     terms: &TermEnv,
     files: &Files,
 ) -> Result<(), ()> {
-    let founds = search_definitions(identifer, &defs);
+    let founds = search_definitions(identifier, &defs);
     let term_ids = founds
         .iter()
         .filter_map(|def| termid_of_def(def, &types, &terms))
         .collect::<HashSet<_>>();
 
     if founds.is_empty() {
-        eprintln!("No definitions found for {}", identifer);
+        eprintln!("No definitions found for {}", identifier);
         return Err(());
     }
 
     for d in founds {
         explain_definition(d, &files);
-        // lookup_def(d, &types, &terms, &files);
     }
-
     println!();
 
     for ti in &term_ids {
@@ -282,9 +280,8 @@ fn search_by_identifier(
     }
 
     println!();
-
-    // find examples of the term
-
+    // find examples
+    let mut examples = Vec::new();
     for d in defs {
         match d {
             Def::Rule(_) => {
@@ -294,18 +291,25 @@ fn search_by_identifier(
                 let line = linemap.line(offset);
                 let linepos = linemap.get(line - 1).unwrap();
                 let sexp = match_first_sexp(source_code.chars().skip(*linepos));
+                // for ti in &term_ids {
+                //     let term = terms.terms[ti.0].clone();
+                //     let term_name = types.syms[term.name.0].clone();
+                //     if sexp.contains(&term_name) {
+                //         println!("[Usage ({})]", term_name);
+                //         println!("{}", sexp);
+                //     }
+                // }
 
-                for ti in &term_ids {
-                    let term = terms.terms[ti.0].clone();
-                    let term_name = types.syms[term.name.0].clone();
-                    if sexp.contains(&term_name) {
-                        println!("[Usage ({})]", term_name);
-                        println!("{}", sexp);
-                    }
+                if sexp.contains(identifier) {
+                    examples.push(sexp);
                 }
             }
             _ => {}
         }
+    }
+    println!("[Usage ({})]", identifier);
+    for example in examples {
+        println!("{}", example);
     }
 
     Ok(())
