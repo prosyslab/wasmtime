@@ -23,13 +23,21 @@ struct Args {
 fn search_definitions<'a>(ident: &'a str, defs: &'a [Def]) -> Vec<&'a Def> {
     defs.iter()
         .filter(|def| match def {
-            Def::Type(typ) if typ.name.0.contains(ident) => true,
+            Def::Type(typ) if typ.name.0.to_lowercase().contains(&ident.to_lowercase()) => true,
             Def::Rule(rule) => match rule.pattern.root_term() {
-                Some(rt) if rt.0.contains(ident) => true,
+                Some(rt) if rt.0.to_lowercase().contains(&ident.to_lowercase()) => true,
                 _ => false,
             },
-            Def::Extractor(extractor) if extractor.term.0.contains(ident) => true,
-            Def::Decl(decl) if decl.term.0.contains(ident) => true,
+            Def::Extractor(extractor)
+                if extractor
+                    .term
+                    .0
+                    .to_lowercase()
+                    .contains(&ident.to_lowercase()) =>
+            {
+                true
+            }
+            Def::Decl(decl) if decl.term.0.to_lowercase().contains(&ident.to_lowercase()) => true,
             _ => false,
         })
         .collect::<Vec<_>>()
@@ -300,7 +308,7 @@ fn search_by_identifier(
                 //     }
                 // }
 
-                if sexp.contains(identifier) {
+                if sexp.to_lowercase().contains(&identifier.to_lowercase()) {
                     examples.push(sexp);
                 }
             }
