@@ -12,7 +12,7 @@ block0(v0: i64, v1: i64, v2: i64):
 
 ; VCode:
 ;   pushq %rbp
-;   movq    %rsp, %rbp
+;   movq %rsp, %rbp
 ;   subq $0x30, %rsp
 ;   movq %rbx, (%rsp)
 ;   movq %r12, 8(%rsp)
@@ -20,17 +20,17 @@ block0(v0: i64, v1: i64, v2: i64):
 ;   movq %r14, 0x18(%rsp)
 ;   movq %r15, 0x20(%rsp)
 ; block0:
-;   movq    %rdi, %r10
-;   movq    %rdx, %rdi
+;   movq %rdi, %r10
+;   movq %rdx, %rdi
 ;   %rdi = stack_switch_basic %r10, %rsi, %rdi
-;   movq    %rdi, %rax
+;   movq %rdi, %rax
 ;   movq (%rsp), %rbx
 ;   movq 8(%rsp), %r12
 ;   movq 0x10(%rsp), %r13
 ;   movq 0x18(%rsp), %r14
 ;   movq 0x20(%rsp), %r15
 ;   addq $0x30, %rsp
-;   movq    %rbp, %rsp
+;   movq %rbp, %rsp
 ;   popq %rbp
 ;   ret
 ;
@@ -142,7 +142,7 @@ block0(v0: i64, v1: i64):
 
 ; VCode:
 ;   pushq %rbp
-;   movq    %rsp, %rbp
+;   movq %rsp, %rbp
 ;   subq $0xc0, %rsp
 ;   movq %rbx, 0x90(%rsp)
 ;   movq %r12, 0x98(%rsp)
@@ -232,18 +232,15 @@ block0(v0: i64, v1: i64):
 ;   lea     0(%r11,%r8,1), %r8
 ;   lea     0(%r10,%r8,1), %r8
 ;   lea     0(%r9,%r8,1), %r8
-;   movq <offset:1>+0x18(%rsp), %r9
-;   addq (%r9), %rsi
-;   movq <offset:1>+(%rsp), %rdi
-;   lea     0(%rsi,%rdi,1), %r9
-;   lea     0(%r8,%r9,1), %rax
-;   movq 0x80(%rsp), %rbx
-;   movq 0x88(%rsp), %r12
-;   movq 0x90(%rsp), %r13
-;   movq 0x98(%rsp), %r14
-;   movq 0xa0(%rsp), %r15
-;   addq $0xb0, %rsp
-;   movq    %rbp, %rsp
+;   movq <offset:1>+8(%rsp), %r9
+;   lea     0(%r9,%r8,1), %rax
+;   movq 0x90(%rsp), %rbx
+;   movq 0x98(%rsp), %r12
+;   movq 0xa0(%rsp), %r13
+;   movq 0xa8(%rsp), %r14
+;   movq 0xb0(%rsp), %r15
+;   addq $0xc0, %rsp
+;   movq %rbp, %rsp
 ;   popq %rbp
 ;   ret
 ;
@@ -416,7 +413,7 @@ block0(v0: i64, v1: i64):
 
 ; VCode:
 ;   pushq %rbp
-;   movq    %rsp, %rbp
+;   movq %rsp, %rbp
 ;   subq $0x130, %rsp
 ;   movq %rbx, 0x100(%rsp)
 ;   movq %r12, 0x108(%rsp)
@@ -498,7 +495,7 @@ block0(v0: i64, v1: i64):
 ;   movq 0x118(%rsp), %r14
 ;   movq 0x120(%rsp), %r15
 ;   addq $0x130, %rsp
-;   movq    %rbp, %rsp
+;   movq %rbp, %rsp
 ;   popq %rbp
 ;   ret
 ;
