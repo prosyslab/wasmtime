@@ -232,3 +232,4 @@
       (fcvt_from_uint ty val))
 (rule (simplify (fcvt_from_sint ty (sextend _ val)))
       (fcvt_from_sint ty val))
+
