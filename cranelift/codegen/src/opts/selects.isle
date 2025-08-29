@@ -86,3 +86,4 @@
                            (sextend ty a @ (value_type small))
                            (sextend ty b @ (value_type small))))
       (sextend ty (select small cond a b)))
+
