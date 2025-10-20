@@ -128,44 +128,6 @@ macro_rules! isle_common_prelude_methods {
             Imm64::new((x >> y) & ty_mask)
         }
 
-        #[inline]
-        fn u64_not(&mut self, x: u64) -> u64 {
-            !x
-        }
-
-        #[inline]
-        fn u64_eq(&mut self, x: u64, y: u64) -> bool {
-            x == y
-        }
-
-        #[inline]
-        fn u64_le(&mut self, x: u64, y: u64) -> bool {
-            x <= y
-        }
-
-        #[inline]
-        fn u64_lt(&mut self, x: u64, y: u64) -> bool {
-            x < y
-        }
-
-        #[inline]
-        fn u64_is_zero(&mut self, value: u64) -> bool {
-            0 == value
-        }
-
-        fn i64_is_zero(&mut self, value: i64) -> bool {
-            0 == value
-        }
-
-        #[inline]
-        fn u64_is_odd(&mut self, x: u64) -> bool {
-            x & 1 == 1
-        }
-
-        fn i64_shr(&mut self, a: i64, b: i64) -> i64 {
-            a >> b
-        }
-
         fn i64_ctz(&mut self, a: i64) -> i64 {
             a.trailing_zeros().into()
         }
