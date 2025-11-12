@@ -2190,101 +2190,101 @@
   (simplify (ushr ty (ushr ty (iconst_u ty x) y) (iconst_u ty z)))
   (if-let true (u64_eq z (u32_into_u64 (u64_ilog2 x))))
   (ushr ty (iconst_u ty 1) y))
-(rule (simplify_skeleton (sdiv sr0 (iconst_s _ 1))) x)
-(rule (simplify_skeleton (sdiv sr0 (iconst_s _ 1))) x)
-(rule (simplify_skeleton (sdiv sr0 (iconst_u _ 1))) x)
-(rule (simplify_skeleton (sdiv sr0 (iconst_u _ 1))) x)
-(rule (simplify_skeleton (srem sr0 (iconst_s _ 1))) (iconst_u cty 0))
-(rule (simplify_skeleton (srem sr0 (iconst_s _ 1))) (iconst_u cty 0))
-(rule (simplify_skeleton (srem sr0 (iconst_u _ 1))) (iconst_u cty 0))
-(rule (simplify_skeleton (srem sr0 (iconst_u _ 1))) (iconst_u cty 0))
+(rule (simplify_skeleton (sdiv x (iconst_s _ 1))) x)
+(rule (simplify_skeleton (sdiv x (iconst_s _ 1))) x)
+(rule (simplify_skeleton (sdiv x (iconst_u _ 1))) x)
+(rule (simplify_skeleton (sdiv x (iconst_u _ 1))) x)
+(rule (simplify_skeleton (srem x (iconst_s _ 1))) (iconst_u cty 0))
+(rule (simplify_skeleton (srem x (iconst_s _ 1))) (iconst_u cty 0))
+(rule (simplify_skeleton (srem x (iconst_u _ 1))) (iconst_u cty 0))
+(rule (simplify_skeleton (srem x (iconst_u _ 1))) (iconst_u cty 0))
 (rule
-  (simplify_skeleton (srem (band _ (iconst_s _ C2) sr0) (iconst_s _ -1)))
+  (simplify_skeleton (srem (band _ (iconst_s _ x) y) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add (i64_cast_unsigned x)
               (u64_wrapping_add (u64_xor (i64_cast_unsigned x) -1) 1)))))
 (rule
-  (simplify_skeleton (srem (band _ (iconst_s _ C2) sr0) (iconst_s _ -1)))
+  (simplify_skeleton (srem (band _ (iconst_s _ x) y) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add (i64_cast_unsigned y)
               (u64_wrapping_add (u64_xor (i64_cast_unsigned y) -1) 1)))))
 (rule
-  (simplify_skeleton (srem (band _ (iconst_u _ C2) sr0) (iconst_s _ -1)))
+  (simplify_skeleton (srem (band _ (iconst_u _ x) y) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add x (u64_wrapping_add (u64_xor x -1) 1)))))
 (rule
-  (simplify_skeleton (srem (band _ (iconst_u _ C2) sr0) (iconst_s _ -1)))
+  (simplify_skeleton (srem (band _ (iconst_u _ x) y) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add y (u64_wrapping_add (u64_xor y -1) 1)))))
 (rule
-  (simplify_skeleton (srem (band _ (iconst_s _ C2) sr0) (iconst_s _ -1)))
+  (simplify_skeleton (srem (band _ (iconst_s _ x) y) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add (i64_cast_unsigned x)
               (u64_wrapping_add (u64_xor (i64_cast_unsigned x) -1) 1)))))
 (rule
-  (simplify_skeleton (srem (band _ (iconst_u _ C2) sr0) (iconst_s _ -1)))
+  (simplify_skeleton (srem (band _ (iconst_u _ x) y) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add x (u64_wrapping_add (u64_xor x -1) 1)))))
 (rule
-  (simplify_skeleton (srem (ishl _ sr0 (iconst_s _ C2)) (iconst_s _ -1)))
+  (simplify_skeleton (srem (ishl _ x (iconst_s _ y)) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add (i64_cast_unsigned y)
               (u64_wrapping_add (u64_xor (i64_cast_unsigned y) -1) 1)))))
 (rule
-  (simplify_skeleton (srem (ishl _ sr0 (iconst_s _ C2)) (iconst_s _ -1)))
+  (simplify_skeleton (srem (ishl _ x (iconst_s _ y)) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add (i64_cast_unsigned z)
               (u64_wrapping_add (u64_xor (i64_cast_unsigned z) -1) 1)))))
 (rule
-  (simplify_skeleton (srem (ishl _ sr0 (iconst_u _ C2)) (iconst_s _ -1)))
+  (simplify_skeleton (srem (ishl _ x (iconst_u _ y)) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add y (u64_wrapping_add (u64_xor y -1) 1)))))
 (rule
-  (simplify_skeleton (srem (ishl _ sr0 (iconst_u _ C2)) (iconst_s _ -1)))
+  (simplify_skeleton (srem (ishl _ x (iconst_u _ y)) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add z (u64_wrapping_add (u64_xor z -1) 1)))))
 (rule
-  (simplify_skeleton (srem (ishl _ sr0 (iconst_s _ C2)) (iconst_s _ -1)))
+  (simplify_skeleton (srem (ishl _ x (iconst_s _ y)) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add (i64_cast_unsigned y)
               (u64_wrapping_add (u64_xor (i64_cast_unsigned y) -1) 1)))))
 (rule
-  (simplify_skeleton (srem (ishl _ sr0 (iconst_u _ C2)) (iconst_s _ -1)))
+  (simplify_skeleton (srem (ishl _ x (iconst_u _ y)) (iconst_s _ -1)))
    (iconst cty
      (imm64 (u64_wrapping_add y (u64_wrapping_add (u64_xor y -1) 1)))))
 (rule
-  (simplify_skeleton (udiv sr0 (ishl cty (iconst_s cty 1) y)))
+  (simplify_skeleton (udiv x (band cty y (ishl cty (iconst_s cty 1) z))))
+   (ushr cty x z))
+(rule
+  (simplify_skeleton (udiv x (band cty y (ishl cty (iconst_u cty 1) z))))
+   (ushr cty x z))
+(rule
+  (simplify_skeleton (udiv x (ishl cty (iconst_s cty 1) y)))
    (ushr cty x y))
 (rule
-  (simplify_skeleton (udiv sr0 (ishl cty (iconst_u cty 1) y)))
+  (simplify_skeleton (udiv x (ishl cty (iconst_u cty 1) y)))
    (ushr cty x y))
 (rule
-  (simplify_skeleton (udiv sr0
+  (simplify_skeleton (udiv x
                        (ishl cty
                          (ishl cty (iconst_s cty 1) y)
                          (iconst_s cty z))))
    (ushr cty x (iadd cty (iconst_s cty z) y)))
 (rule
-  (simplify_skeleton (udiv sr0
+  (simplify_skeleton (udiv x
                        (ishl cty
                          (ishl cty (iconst_s cty 1) y)
                          (iconst_u cty z))))
    (ushr cty x (iadd cty (iconst_u cty z) y)))
 (rule
-  (simplify_skeleton (udiv sr0
+  (simplify_skeleton (udiv x
                        (ishl cty
                          (ishl cty (iconst_u cty 1) y)
                          (iconst_s cty z))))
    (ushr cty x (iadd cty (iconst_s cty z) y)))
 (rule
-  (simplify_skeleton (udiv sr0
+  (simplify_skeleton (udiv x
                        (ishl cty
                          (ishl cty (iconst_u cty 1) y)
                          (iconst_u cty z))))
    (ushr cty x (iadd cty (iconst_u cty z) y)))
-(rule
-  (simplify_skeleton (udiv sr2 (band cty y (ishl cty (iconst_s cty 1) z))))
-   (ushr cty x z))
-(rule
-  (simplify_skeleton (udiv sr2 (band cty y (ishl cty (iconst_u cty 1) z))))
-   (ushr cty x z))
