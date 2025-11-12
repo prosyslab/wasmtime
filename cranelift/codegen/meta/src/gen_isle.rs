@@ -847,6 +847,18 @@ impl NumericOp<'_> {
                 ret: "u32",
                 ..unop.clone()
             },
+            NumericOp {
+                name: "count_ones",
+                body: "a.count_ones()",
+                ret: "u32",
+                ..unop.clone()
+            },
+            NumericOp {
+                name: "count_zeros",
+                body: "a.count_zeros()",
+                ret: "u32",
+                ..unop.clone()
+            },
         ];
 
         // Operations that apply only to signed numbers.
