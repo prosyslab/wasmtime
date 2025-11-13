@@ -7837,14 +7837,14 @@
               (sgt ty x (iconst_u _ y))
               (ugt ty (iconst_u _ y) (iconst_u _ z))))
   (if-let true (u64_ne y 0))
-(if-let 0 (u64_div z y))
+(if-let 0 (u64_checked_div z y))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
               (sgt ty x (iconst_u _ y))
               (ult ty (iconst_u _ z) (iconst_u _ y))))
   (if-let true (u64_ne y 0))
-(if-let 0 (u64_div z y))
+(if-let 0 (u64_checked_div z y))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
@@ -8111,14 +8111,14 @@
               (slt ty (iconst_u _ x) y)
               (ugt ty (iconst_u _ x) (iconst_u _ z))))
   (if-let true (u64_ne x 0))
-(if-let 0 (u64_div z x))
+(if-let 0 (u64_checked_div z x))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
               (slt ty (iconst_u _ x) y)
               (ult ty (iconst_u _ z) (iconst_u _ x))))
   (if-let true (u64_ne x 0))
-(if-let 0 (u64_div z x))
+(if-let 0 (u64_checked_div z x))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
@@ -8259,14 +8259,14 @@
               (ugt ty (iconst_u _ x) (iconst_u _ y))
               (sgt ty z (iconst_u _ x))))
   (if-let true (u64_ne x 0))
-(if-let 0 (u64_div y x))
+(if-let 0 (u64_checked_div y x))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
               (ugt ty (iconst_u _ x) (iconst_u _ y))
               (slt ty (iconst_u _ x) z)))
   (if-let true (u64_ne x 0))
-(if-let 0 (u64_div y x))
+(if-let 0 (u64_checked_div y x))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
@@ -8325,14 +8325,14 @@
               (ult ty (iconst_u _ x) (iconst_u _ y))
               (sgt ty z (iconst_u _ y))))
   (if-let true (u64_ne y 0))
-(if-let 0 (u64_div x y))
+(if-let 0 (u64_checked_div x y))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
               (ult ty (iconst_u _ x) (iconst_u _ y))
               (slt ty (iconst_u _ y) z)))
   (if-let true (u64_ne y 0))
-(if-let 0 (u64_div x y))
+(if-let 0 (u64_checked_div x y))
 (iconst_u ty 1))
 (rule
   (simplify (bor ty
