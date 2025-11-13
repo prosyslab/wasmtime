@@ -876,11 +876,6 @@
   (simplify_skeleton (udiv x (band ty y (ishl ty (iconst_u ty 1) z))))
    (ushr ty x z))
 (rule
-  (simplify_skeleton (udiv (udiv x (iconst_s ty y)) (iconst_s ty z)))
-  (if-let true (i64_lt z 0))
-(if-let true (i64_lt y 0))
-(iconst_u ty 0))
-(rule
   (simplify (band ty (bor ty x (iconst_u ty y)) (bor ty z (iconst_u ty y))))
    (bor ty (iconst_u ty y) (band ty z x)))
 (rule
