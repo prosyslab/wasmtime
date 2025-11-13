@@ -269,8 +269,6 @@
 (rule (simplify (eq ty x (select _ (sle _ x y) x y))) (sle ty x y))
 (rule (simplify (eq ty x (select _ (sle _ y x) y x))) (sle ty x y))
 (rule (simplify (eq ty x (select _ (slt _ x y) x y))) (sle ty x y))
-(rule (simplify (eq ty x (select _ (slt _ x y) y x))) (sle ty x y))
-(rule (simplify (eq ty x (select _ (slt _ y x) x y))) (sle ty x y))
 (rule (simplify (eq ty x (select _ (slt _ y x) y x))) (sle ty x y))
 (rule (simplify (eq ty x (select _ (uge _ x y) y x))) (ule ty x y))
 (rule (simplify (eq ty x (select _ (uge _ y x) x y))) (ule ty x y))
@@ -303,8 +301,6 @@
 (rule (simplify (eq ty (select _ (sle _ x y) x y) y)) (sle ty y x))
 (rule (simplify (eq ty (select _ (slt _ x y) x y) x)) (sle ty x y))
 (rule (simplify (eq ty (select _ (slt _ x y) x y) y)) (sle ty y x))
-(rule (simplify (eq ty (select _ (slt _ x y) y x) x)) (sle ty x y))
-(rule (simplify (eq ty (select _ (slt _ x y) y x) y)) (sle ty y x))
 (rule (simplify (eq ty (select _ (uge _ x y) y x) x)) (ule ty x y))
 (rule (simplify (eq ty (select _ (uge _ x y) y x) y)) (ule ty y x))
 (rule (simplify (eq ty (select _ (ugt _ x y) y x) x)) (ule ty x y))
@@ -410,10 +406,8 @@
 (rule (simplify (sge ty x (select _ (sle _ x y) y x))) (sle ty y x))
 (rule (simplify (sge ty x (select _ (sle _ y x) x y))) (sle ty y x))
 (rule (simplify (sge ty x (select _ (sle _ y x) y x))) (iconst_u ty 1))
-(rule (simplify (sge ty x (select _ (slt _ x y) x y))) (sle ty y x))
 (rule (simplify (sge ty x (select _ (slt _ x y) y x))) (sle ty y x))
 (rule (simplify (sge ty x (select _ (slt _ y x) x y))) (sle ty y x))
-(rule (simplify (sge ty x (select _ (slt _ y x) y x))) (sle ty y x))
 (rule (simplify (sle ty (select _ (sge _ x y) x y) x)) (sle ty y x))
 (rule (simplify (sle ty (select _ (sge _ x y) x y) y)) (sle ty x y))
 (rule (simplify (sle ty (select _ (sge _ x y) y x) x)) (iconst_u ty 1))
@@ -422,8 +416,6 @@
 (rule (simplify (sle ty (select _ (sle _ x y) x y) y)) (iconst_u ty 1))
 (rule (simplify (sle ty (select _ (sle _ x y) y x) x)) (sle ty y x))
 (rule (simplify (sle ty (select _ (sle _ x y) y x) y)) (sle ty x y))
-(rule (simplify (sle ty (select _ (slt _ x y) x y) x)) (sle ty y x))
-(rule (simplify (sle ty (select _ (slt _ x y) x y) y)) (sle ty x y))
 (rule (simplify (sle ty (select _ (slt _ x y) y x) x)) (sle ty y x))
 (rule (simplify (sle ty (select _ (slt _ x y) y x) y)) (sle ty x y))
 (rule (simplify (uge ty x (select _ (uge _ x y) x y))) (ule ty y x))
@@ -888,54 +880,6 @@
   (simplify (band ty (bor ty (iconst_u ty x) y) (bor ty (iconst_u ty x) z)))
    (bor ty (iconst_u ty x) (band ty z y)))
 (rule
-  (simplify (band ty (bxor ty x (iconst_s ty y)) (bxor ty x (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not y)))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty x (iconst_s ty y)) (bxor ty x (iconst_u ty z))))
-  (if-let true (i64_eq y (i64_not (u64_cast_signed z))))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty x (iconst_s ty y)) (bxor ty (iconst_s ty z) x)))
-  (if-let true (i64_eq z (i64_not y)))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty x (iconst_s ty y)) (bxor ty (iconst_u ty z) x)))
-  (if-let true (i64_eq y (i64_not (u64_cast_signed z))))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty x (iconst_u ty y)) (bxor ty x (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed y))))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty x (iconst_u ty y)) (bxor ty (iconst_s ty z) x)))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed y))))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty (iconst_s ty x) y) (bxor ty y (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not x)))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty (iconst_s ty x) y) (bxor ty y (iconst_u ty z))))
-  (if-let true (i64_eq x (i64_not (u64_cast_signed z))))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty (iconst_s ty x) y) (bxor ty (iconst_s ty z) y)))
-  (if-let true (i64_eq z (i64_not x)))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty (iconst_s ty x) y) (bxor ty (iconst_u ty z) y)))
-  (if-let true (i64_eq x (i64_not (u64_cast_signed z))))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty (iconst_u ty x) y) (bxor ty y (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed x))))
-  (iconst_u ty 0))
-(rule
-  (simplify (band ty (bxor ty (iconst_u ty x) y) (bxor ty (iconst_s ty z) y)))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed x))))
-  (iconst_u ty 0))
-(rule
   (simplify (band ty (eq ty x (iconst_s cty y)) (sge ty x (iconst_s cty z))))
   (if-let true (i64_lt_eq z y))
   (eq ty (iconst_s cty y) x))
@@ -950,14 +894,6 @@
 (rule
   (simplify (band ty (eq ty x (iconst_s cty y)) (sle ty (iconst_u cty z) x)))
   (if-let true (i64_lt_eq (u64_cast_signed z) y))
-  (eq ty (iconst_s cty y) x))
-(rule
-  (simplify (band ty (eq ty x (iconst_s cty y)) (uge ty x (iconst_u cty z))))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not y)))
-  (eq ty (iconst_s cty y) x))
-(rule
-  (simplify (band ty (eq ty x (iconst_s cty y)) (ule ty (iconst_u cty z) x)))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not y)))
   (eq ty (iconst_s cty y) x))
 (rule
   (simplify (band ty (eq ty x (iconst_u cty y)) (sge ty x (iconst_s cty z))))
@@ -990,14 +926,6 @@
 (rule
   (simplify (band ty (eq ty (iconst_s cty x) y) (sle ty (iconst_u cty z) y)))
   (if-let true (i64_lt_eq (u64_cast_signed z) x))
-  (eq ty (iconst_s cty x) y))
-(rule
-  (simplify (band ty (eq ty (iconst_s cty x) y) (uge ty y (iconst_u cty z))))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not x)))
-  (eq ty (iconst_s cty x) y))
-(rule
-  (simplify (band ty (eq ty (iconst_s cty x) y) (ule ty (iconst_u cty z) y)))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not x)))
   (eq ty (iconst_s cty x) y))
 (rule
   (simplify (band ty (eq ty (iconst_u cty x) y) (sge ty y (iconst_s cty z))))
@@ -1080,97 +1008,17 @@
   (if-let true (i64_lt_eq (u64_cast_signed x) (u64_cast_signed z)))
   (eq ty (iconst_u cty z) y))
 (rule
-  (simplify (band ty (uge ty x (iconst_u cty y)) (eq ty x (iconst_s cty z))))
-  (if-let true (i64_eq (u64_cast_signed y) (i64_not z)))
-  (eq ty (iconst_s cty z) x))
-(rule
-  (simplify (band ty (uge ty x (iconst_u cty y)) (eq ty (iconst_s cty z) x)))
-  (if-let true (i64_eq (u64_cast_signed y) (i64_not z)))
-  (eq ty (iconst_s cty z) x))
-(rule
-  (simplify (band ty (ule ty (iconst_u cty x) y) (eq ty y (iconst_s cty z))))
-  (if-let true (i64_eq (u64_cast_signed x) (i64_not z)))
-  (eq ty (iconst_s cty z) y))
-(rule
-  (simplify (band ty (ule ty (iconst_u cty x) y) (eq ty (iconst_s cty z) y)))
-  (if-let true (i64_eq (u64_cast_signed x) (i64_not z)))
-  (eq ty (iconst_s cty z) y))
-(rule
-  (simplify (bor ty (band ty x (iconst_u ty y)) (band ty x (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed y))))
-  x)
-(rule
   (simplify (bor ty (band ty x (iconst_u ty y)) (band ty z (iconst_u ty y))))
    (band ty (iconst_u ty y) (bor ty z x)))
-(rule
-  (simplify (bor ty (band ty x (iconst_u ty y)) (band ty (iconst_s ty z) x)))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed y))))
-  x)
 (rule
   (simplify (bor ty (band ty x (iconst_u ty y)) (band ty (iconst_u ty y) z)))
    (band ty (iconst_u ty y) (bor ty z x)))
 (rule
-  (simplify (bor ty (band ty (iconst_u ty x) y) (band ty y (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed x))))
-  y)
-(rule
   (simplify (bor ty (band ty (iconst_u ty x) y) (band ty z (iconst_u ty x))))
    (band ty (iconst_u ty x) (bor ty z y)))
 (rule
-  (simplify (bor ty (band ty (iconst_u ty x) y) (band ty (iconst_s ty z) y)))
-  (if-let true (i64_eq z (i64_not (u64_cast_signed x))))
-  y)
-(rule
   (simplify (bor ty (band ty (iconst_u ty x) y) (band ty (iconst_u ty x) z)))
    (band ty (iconst_u ty x) (bor ty z y)))
-(rule
-  (simplify (bor ty (bxor ty x (iconst_s ty y)) (bxor ty x (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not y)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty x (iconst_s ty y)) (bxor ty x (iconst_u ty z))))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not y)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty x (iconst_s ty y)) (bxor ty (iconst_s ty z) x)))
-  (if-let true (i64_eq z (i64_not y)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty x (iconst_s ty y)) (bxor ty (iconst_u ty z) x)))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not y)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty x (iconst_u ty y)) (bxor ty x (iconst_s ty z))))
-  (if-let true (i64_eq (u64_cast_signed y) (i64_not z)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty x (iconst_u ty y)) (bxor ty (iconst_s ty z) x)))
-  (if-let true (i64_eq (u64_cast_signed y) (i64_not z)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty (iconst_s ty x) y) (bxor ty y (iconst_s ty z))))
-  (if-let true (i64_eq z (i64_not x)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty (iconst_s ty x) y) (bxor ty y (iconst_u ty z))))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not x)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty (iconst_s ty x) y) (bxor ty (iconst_s ty z) y)))
-  (if-let true (i64_eq z (i64_not x)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty (iconst_s ty x) y) (bxor ty (iconst_u ty z) y)))
-  (if-let true (i64_eq (u64_cast_signed z) (i64_not x)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty (iconst_u ty x) y) (bxor ty y (iconst_s ty z))))
-  (if-let true (i64_eq (u64_cast_signed x) (i64_not z)))
-  (iconst_s ty -1))
-(rule
-  (simplify (bor ty (bxor ty (iconst_u ty x) y) (bxor ty (iconst_s ty z) y)))
-  (if-let true (i64_eq (u64_cast_signed x) (i64_not z)))
-  (iconst_s ty -1))
 (rule
   (simplify (eq ty (iadd _ x (iconst_u _ y)) (iadd _ z (iconst_u _ y))))
    (eq ty z x))
