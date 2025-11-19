@@ -1,5 +1,1 @@
-(decl pure partial intcc_comparable (IntCC IntCC) bool)
-(decl pure decompose_intcc (IntCC) u64)
-(decl compose_icmp (Type u64 bool Value Value) Value)
-(decl pure intcc_class (IntCC) u64)
 

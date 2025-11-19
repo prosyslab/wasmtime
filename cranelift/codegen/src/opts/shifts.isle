@@ -1,3 +1,0 @@
-(decl isub_uextend (Value Value) Value)
-(decl pure partial shift_amt_to_type (u64) Type)
-(decl iadd_uextend (Value Value) Value)
