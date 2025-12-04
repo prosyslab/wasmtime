@@ -422,6 +422,7 @@ impl BenchState {
         let mut config = options.config(None)?;
         // NB: always disable the compilation cache.
         config.cache(None);
+        config.profiler(wasmtime::ProfilingStrategy::JitDump);
         let engine = Engine::new(&config)?;
         let mut linker = Linker::<HostState>::new(&engine);
 
