@@ -116,11 +116,6 @@
 (rule (simplify
        (iadd ty k @ (iconst ty _) x))
       (iadd ty x k))
-;; sub is not commutative, but we can flip the args and negate the
-;; whole thing.
-(rule (simplify
-       (isub ty k @ (iconst ty _) x))
-      (ineg ty (isub ty x k)))
 (rule (simplify
        (imul ty k @ (iconst ty _) x))
       (imul ty x k))
