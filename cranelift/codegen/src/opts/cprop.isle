@@ -112,10 +112,6 @@
 ;; Canonicalize via commutativity: push immediates to the right.
 ;;
 ;;   (op k x) --> (op x k)
-
-(rule (simplify
-       (iadd ty k @ (iconst ty _) x))
-      (iadd ty x k))
 (rule (simplify
        (imul ty k @ (iconst ty _) x))
       (imul ty x k))
