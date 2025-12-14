@@ -238,7 +238,6 @@
 (rule (simplify (imul ty x (ishl ty (iconst_s ty 1) y))) (ishl ty x y))
 
 ;; (x - y) + x --> x
-(rule (simplify (iadd ty (isub ty x y) y)) x)
 (rule (simplify (iadd ty y (isub ty x y))) x)
 
 ;; (x + y) - y --> x
