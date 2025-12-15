@@ -26,14 +26,6 @@
       (subsume (eq ty a b)))
 (rule (simplify (eq ty (iadd _ k a) (iadd _ k b)))
       (subsume (eq ty a b)))
-(rule (simplify (ne ty (iadd _ a k) (iadd _ b k)))
-      (subsume (ne ty a b)))
-(rule (simplify (ne ty (iadd _ a k) (iadd _ k b)))
-      (subsume (ne ty a b)))
-(rule (simplify (ne ty (iadd _ k a) (iadd _ b k)))
-      (subsume (ne ty a b)))
-(rule (simplify (ne ty (iadd _ k a) (iadd _ k b)))
-      (subsume (ne ty a b)))
 
 ;; To avoid repeating all the above rules again, normalize isub to iadd
 ;; (a - b) == (c - d) ⟹ (a + d) == (c + b)

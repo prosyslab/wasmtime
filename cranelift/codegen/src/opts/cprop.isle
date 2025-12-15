@@ -94,13 +94,6 @@
 (rule (simplify (ireduce narrow (iconst (fits_in_64 _) (u64_from_imm64 imm))))
       (subsume (iconst narrow (imm64_masked narrow imm))))
 
-;; iconst_[su] support $I128, but do so by extending, so restricting to
-;; 64-bit or smaller keeps it from just remaking essentially the same thing.
-(rule (simplify (uextend (fits_in_64 wide) (iconst_u narrow k)))
-      (subsume (iconst_u wide k)))
-(rule (simplify (sextend (fits_in_64 wide) (iconst_s narrow k)))
-      (subsume (iconst_s wide k)))
-
 (rule (simplify
        (icmp result_ty
             cc
@@ -184,24 +177,6 @@
       (subsume x))
 (rule (simplify (select ty (iconst_u _ 0) _ y))
       (subsume y))
-
-;; Reassociate across `==`/`!=` when we can simplify a constant
-;; `x + K1 == K2` --> `x == K2 - K1`
-(rule (simplify (eq ty1 (iadd ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (eq ty1 x (isub ty2 k2 k1)))
-(rule (simplify (ne ty1 (iadd ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (ne ty1 x (isub ty2 k2 k1)))
-;; `x - K1 == K2` --> `x == K2 + K1`
-(rule (simplify (eq ty1 (isub ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (eq ty1 x (iadd ty2 k2 k1)))
-(rule (simplify (ne ty1 (isub ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (ne ty1 x (iadd ty2 k2 k1)))
-;; `x + K1 == y + K2` --> `x == y + (K2 - K1)`
-(rule (simplify (eq ty1 (iadd ty2 x k1@(iconst _ _)) (iadd ty3 y k2@(iconst _ _))))
-      (eq ty1 x (iadd ty2 y (isub ty3 k2 k1))))
-(rule (simplify (ne ty1 (iadd ty2 x k1@(iconst _ _)) (iadd ty3 y k2@(iconst _ _))))
-      (ne ty1 x (iadd ty2 y (isub ty3 k2 k1))))
-;; An icmp rule normalizes (eq sub sub), so we don't need to handle it here.
 
 ;; Replace subtraction by a "negative" constant with addition.
 ;; Notably, this gives `x - (-1) == x + 1`, so other patterns don't have to
