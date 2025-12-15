@@ -1,9 +1,3 @@
-;; Chained `uextend` and `sextend`.
-(rule (simplify (uextend ty (uextend _intermediate_ty x)))
-      (uextend ty x))
-(rule (simplify (sextend ty (sextend _intermediate_ty x)))
-      (sextend ty x))
-
 ;; Once something has be `uextend`ed, further `sextend`ing is the same as `uextend`
 (rule (simplify (sextend ty (uextend _intermediate_ty x)))
       (uextend ty x))
