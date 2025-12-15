@@ -111,9 +111,6 @@
         t5))
 
 ;; General cases for `udiv` with constant divisors.
-(rule (simplify_skeleton (udiv x (iconst_u $I32 (u64_extract_non_zero (u32_from_u64 d)))))
-      (if-let false (u32_is_power_of_two d))
-      (apply_div_const_magic_u32 (Opcode.Udiv) x d))
 (rule (simplify_skeleton (udiv x (iconst_u $I64 (u64_extract_non_zero d))))
       (if-let false (u64_is_power_of_two d))
       (apply_div_const_magic_u64 (Opcode.Udiv) x d))
