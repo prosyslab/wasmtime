@@ -30,51 +30,95 @@ use crate::ir::Opcode;
 /// `finite()` method.) An infinite cost is used to represent a value
 /// that cannot be computed, or otherwise serve as a sentinel when
 /// performing search for the lowest-cost representation of a value.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct Cost(u32);
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) struct ScalarCost(u32);
 
-impl core::fmt::Debug for Cost {
+impl core::fmt::Debug for ScalarCost {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        if *self == Cost::infinity() {
+        if *self == ScalarCost::infinity() {
             write!(f, "Cost::Infinite")
         } else {
-            f.debug_tuple("Cost::Finite").field(&self.cost()).finish()
+            f.debug_struct("Cost::Finite")
+                .field("op_cost", &self.op_cost())
+                .field("depth", &self.depth())
+                .finish()
         }
     }
 }
 
-impl Cost {
-    pub(crate) fn infinity() -> Cost {
+impl Ord for ScalarCost {
+    #[inline]
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        // We make sure that the high bits are the op cost and the low bits are
+        // the depth. This means that we can use normal integer comparison to
+        // order by op cost and then depth.
+        //
+        // We want to break op cost ties with depth (rather than the other way
+        // around). When the op cost is the same, we prefer shallow and wide
+        // expressions to narrow and deep expressions and breaking ties with
+        // `depth` gives us that. For example, `(a + b) + (c + d)` is preferred
+        // to `((a + b) + c) + d`. This is beneficial because it exposes more
+        // instruction-level parallelism and shortens live ranges.
+        self.0.cmp(&other.0)
+    }
+}
+
+impl PartialOrd for ScalarCost {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl ScalarCost {
+    const DEPTH_BITS: u8 = 8;
+    const DEPTH_MASK: u32 = (1 << Self::DEPTH_BITS) - 1;
+    const OP_COST_MASK: u32 = !Self::DEPTH_MASK;
+    const MAX_OP_COST: u32 = Self::OP_COST_MASK >> Self::DEPTH_BITS;
+
+    pub(crate) fn infinity() -> ScalarCost {
         // 2^32 - 1 is, uh, pretty close to infinite... (we use `Cost`
         // only for heuristics and always saturate so this suffices!)
-        Cost(u32::MAX)
+        ScalarCost(u32::MAX)
     }
 
-    pub(crate) fn zero() -> Cost {
-        Cost(0)
+    pub(crate) fn zero() -> ScalarCost {
+        ScalarCost(0)
     }
 
-    /// Construct a new `Cost`.
-    fn new(cost: u32) -> Cost {
-        Cost(cost)
+    /// Construct a new `Cost` from the given parts.
+    ///
+    /// If the opcode cost is greater than or equal to the maximum representable
+    /// opcode cost, then the resulting `Cost` saturates to infinity.
+    fn new(opcode_cost: u32, depth: u8) -> ScalarCost {
+        if opcode_cost >= Self::MAX_OP_COST {
+            Self::infinity()
+        } else {
+            ScalarCost(opcode_cost << Self::DEPTH_BITS | u32::from(depth))
+        }
     }
 
-    fn cost(&self) -> u32 {
-        self.0
+    fn depth(&self) -> u8 {
+        let depth = self.0 & Self::DEPTH_MASK;
+        u8::try_from(depth).unwrap()
+    }
+
+    fn op_cost(&self) -> u32 {
+        (self.0 & Self::OP_COST_MASK) >> Self::DEPTH_BITS
     }
 
     /// Return the cost of an opcode.
-    pub(crate) fn of_opcode(op: Opcode) -> Cost {
+    pub(crate) fn of_opcode(op: Opcode) -> ScalarCost {
         match op {
             // Constants.
-            Opcode::Iconst | Opcode::F32const | Opcode::F64const => Cost::new(1),
+            Opcode::Iconst | Opcode::F32const | Opcode::F64const => ScalarCost::new(1, 0),
 
             // Extends/reduces.
             Opcode::Uextend
             | Opcode::Sextend
             | Opcode::Ireduce
             | Opcode::Iconcat
-            | Opcode::Isplit => Cost::new(1),
+            | Opcode::Isplit => ScalarCost::new(1, 0),
 
             // "Simple" arithmetic.
             Opcode::Iadd
@@ -85,27 +129,27 @@ impl Cost {
             | Opcode::Bnot
             | Opcode::Ishl
             | Opcode::Ushr
-            | Opcode::Sshr => Cost::new(3),
+            | Opcode::Sshr => ScalarCost::new(3, 0),
 
             // "Expensive" arithmetic.
-            Opcode::Imul => Cost::new(10),
+            Opcode::Imul => ScalarCost::new(10, 0),
 
             // Everything else.
             _ => {
                 // By default, be slightly more expensive than "simple"
                 // arithmetic.
-                let mut c = Cost::new(4);
+                let mut c = ScalarCost::new(4, 0);
 
                 // And then get more expensive as the opcode does more side
                 // effects.
                 if op.can_trap() || op.other_side_effects() {
-                    c = c + Cost::new(10);
+                    c = c + ScalarCost::new(10, 0);
                 }
                 if op.can_load() {
-                    c = c + Cost::new(20);
+                    c = c + ScalarCost::new(20, 0);
                 }
                 if op.can_store() {
-                    c = c + Cost::new(50);
+                    c = c + ScalarCost::new(50, 0);
                 }
 
                 c
@@ -119,32 +163,35 @@ impl Cost {
     /// that satisfies `inst_predicates::is_pure_for_egraph()`.
     pub(crate) fn of_pure_op(op: Opcode, operand_costs: impl IntoIterator<Item = Self>) -> Self {
         let c = Self::of_opcode(op) + operand_costs.into_iter().sum();
-        Cost::new(c.cost())
+        ScalarCost::new(c.op_cost(), c.depth().saturating_add(1))
     }
 
     /// Compute the cost of an operation in the side-effectful skeleton.
     pub(crate) fn of_skeleton_op(op: Opcode, arity: usize) -> Self {
-        Cost::of_opcode(op) + Cost::new(u32::try_from(arity).unwrap())
+        ScalarCost::of_opcode(op)
+            + ScalarCost::new(u32::try_from(arity).unwrap(), (arity != 0) as _)
     }
 }
 
-impl core::iter::Sum<Cost> for Cost {
-    fn sum<I: Iterator<Item = Cost>>(iter: I) -> Self {
+impl std::iter::Sum<ScalarCost> for ScalarCost {
+    fn sum<I: Iterator<Item = ScalarCost>>(iter: I) -> Self {
         iter.fold(Self::zero(), |a, b| a + b)
     }
 }
 
-impl core::default::Default for Cost {
-    fn default() -> Cost {
-        Cost::zero()
+impl std::default::Default for ScalarCost {
+    fn default() -> ScalarCost {
+        ScalarCost::zero()
     }
 }
 
-impl core::ops::Add<Cost> for Cost {
-    type Output = Cost;
+impl std::ops::Add<ScalarCost> for ScalarCost {
+    type Output = ScalarCost;
 
-    fn add(self, other: Cost) -> Cost {
-        Cost::new(self.cost().saturating_add(other.cost()))
+    fn add(self, other: ScalarCost) -> ScalarCost {
+        let op_cost = self.op_cost().saturating_add(other.op_cost());
+        let depth = std::cmp::max(self.depth(), other.depth());
+        ScalarCost::new(op_cost, depth)
     }
 }
 
@@ -154,25 +201,39 @@ mod tests {
 
     #[test]
     fn add_cost() {
-        let a = Cost::new(5);
-        let b = Cost::new(37);
-        assert_eq!(a + b, Cost::new(42));
-        assert_eq!(b + a, Cost::new(42));
+        let a = ScalarCost::new(5, 2);
+        let b = ScalarCost::new(37, 3);
+        assert_eq!(a + b, ScalarCost::new(42, 3));
+        assert_eq!(b + a, ScalarCost::new(42, 3));
     }
 
     #[test]
     fn add_infinity() {
-        let a = Cost::new(5);
-        let b = Cost::infinity();
-        assert_eq!(a + b, Cost::infinity());
-        assert_eq!(b + a, Cost::infinity());
+        let a = ScalarCost::new(5, 2);
+        let b = ScalarCost::infinity();
+        assert_eq!(a + b, ScalarCost::infinity());
+        assert_eq!(b + a, ScalarCost::infinity());
     }
 
     #[test]
     fn op_cost_saturates_to_infinity() {
-        let a = Cost::new(u32::MAX - 10);
-        let b = Cost::new(11);
-        assert_eq!(a + b, Cost::infinity());
-        assert_eq!(b + a, Cost::infinity());
+        let a = ScalarCost::new(ScalarCost::MAX_OP_COST - 10, 2);
+        let b = ScalarCost::new(11, 2);
+        assert_eq!(a + b, ScalarCost::infinity());
+        assert_eq!(b + a, ScalarCost::infinity());
+    }
+
+    #[test]
+    fn depth_saturates_to_max_depth() {
+        let a = ScalarCost::new(10, u8::MAX);
+        let b = ScalarCost::new(10, 1);
+        assert_eq!(
+            ScalarCost::of_pure_op(Opcode::Iconst, [a, b]),
+            ScalarCost::new(21, u8::MAX)
+        );
+        assert_eq!(
+            ScalarCost::of_pure_op(Opcode::Iconst, [b, a]),
+            ScalarCost::new(21, u8::MAX)
+        );
     }
 }
