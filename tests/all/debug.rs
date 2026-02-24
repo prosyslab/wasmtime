@@ -1116,3 +1116,87 @@ async fn invalidated_frame_handles_in_dropped_future() -> wasmtime::Result<()> {
 
     Ok(())
 }
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn module_bytecode() -> wasmtime::Result<()> {
+    let wasm = wat::parse_str(
+        r#"
+        (module
+            (func (export "add") (param i32 i32) (result i32)
+                local.get 0
+                local.get 1
+                i32.add
+            )
+        )
+        "#,
+    )
+    .unwrap();
+
+    let mut config = Config::default();
+    config.guest_debug(true);
+    let engine = Engine::new(&config)?;
+    let module = Module::new(&engine, &wasm)?;
+
+    assert_eq!(module.debug_bytecode(), Some(&wasm[..]));
+
+    Ok(())
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn module_bytecode_absent_without_debug() -> wasmtime::Result<()> {
+    let wasm = wat::parse_str("(module)").unwrap();
+
+    let mut config = Config::default();
+    config.guest_debug(false);
+    let engine = Engine::new(&config)?;
+    let module = Module::new(&engine, &wasm)?;
+
+    assert_eq!(module.debug_bytecode(), None);
+
+    Ok(())
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn component_bytecode() -> wasmtime::Result<()> {
+    use wasmtime::component::{Component, Linker};
+
+    // Build the bytecode for each core module by compiling them
+    // standalone.
+    let m1_body = r#"(func (export "f1") (result i32) i32.const 42)"#;
+    let m2_body = r#"(func (export "f2") (result i32) i32.const 99)"#;
+    let m1_wasm = wat::parse_str(&format!("(module $m1 {m1_body})")).unwrap();
+    let m2_wasm = wat::parse_str(&format!("(module $m2 {m2_body})")).unwrap();
+
+    // Build a component that embeds both core modules inline.
+    let component_wasm = wat::parse_str(&format!(
+        r#"(component
+               (core module $m1 {m1_body})
+               (core instance $i1 (instantiate (module $m1)))
+               (core module $m2 {m2_body})
+               (core instance $i2 (instantiate (module $m2))))
+        "#,
+    ))
+    .unwrap();
+
+    let mut config = Config::default();
+    config.guest_debug(true);
+    let engine = Engine::new(&config)?;
+
+    let component = Component::new(&engine, &component_wasm)?;
+    let linker: Linker<()> = Linker::new(&engine);
+    let mut store = Store::new(&engine, ());
+    linker.instantiate(&mut store, &component)?;
+
+    let modules = store.debug_all_modules();
+    assert_eq!(modules.len(), 2);
+
+    // Modules should be registered in offset order. The API doesn't
+    // guarantee this, but this suffices for a test.
+    assert_eq!(modules[0].debug_bytecode().unwrap(), &m1_wasm[..]);
+    assert_eq!(modules[1].debug_bytecode().unwrap(), &m2_wasm[..]);
+
+    Ok(())
+}
