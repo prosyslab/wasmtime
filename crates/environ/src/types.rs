@@ -689,6 +689,7 @@ pub enum WasmHeapBottomType {
 /// WebAssembly function type -- equivalent of `wasmparser`'s FuncType.
 #[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct WasmFuncType {
+    #[serde(deserialize_with = "WasmFuncType::deserialize_params_results")]
     params_results: Box<[WasmValType]>,
     params_len: u32,
     non_i31_gc_ref_params_count: u32,
@@ -750,6 +751,18 @@ impl TypeTrace for WasmFuncType {
 }
 
 impl WasmFuncType {
+    fn deserialize_params_results<'de, D>(deserializer: D) -> Result<Box<[WasmValType]>, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let tys: crate::collections::Vec<WasmValType> =
+            serde::Deserialize::deserialize(deserializer)?;
+        let tys = tys
+            .into_boxed_slice()
+            .map_err(|oom| serde::de::Error::custom(oom))?;
+        Ok(tys)
+    }
+
     /// Creates a new function type from the provided `params` and `returns`.
     #[inline]
     pub fn new(
