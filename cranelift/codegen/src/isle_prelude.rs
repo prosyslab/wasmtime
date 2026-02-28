@@ -280,7 +280,7 @@ macro_rules! isle_common_prelude_methods {
 
         #[inline]
         fn ty_int_ref_scalar_64(&mut self, ty: Type) -> Option<Type> {
-            if ty.bits() <= 64 && !ty.is_float() && !ty.is_vector() {
+            if ty.bits() <= 64 && !ty.is_float() && !ty.is_vector() && !ty.is_dynamic_vector() {
                 Some(ty)
             } else {
                 None

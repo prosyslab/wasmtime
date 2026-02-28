@@ -51,55 +51,55 @@
 ;; `i64` and smaller
 
 ;; Base case, simply adding things in registers.
-(rule iadd_base_case -1 (lower (has_type (fits_in_64 ty) (iadd x y)))
+(rule iadd_base_case -1 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd x y)))
       (add ty  x y))
 
 ;; Special cases for when one operand is an immediate that fits in 12 bits.
-(rule iadd_imm12_right 4 (lower (has_type (fits_in_64 ty) (iadd x (imm12_from_value y))))
+(rule iadd_imm12_right 4 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd x (imm12_from_value y))))
       (add_imm ty x y))
 
-(rule iadd_imm12_left 5 (lower (has_type (fits_in_64 ty) (iadd (imm12_from_value x) y)))
+(rule iadd_imm12_left 5 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd (imm12_from_value x) y)))
       (add_imm ty y x))
 
 ;; Same as the previous special cases, except we can switch the addition to a
 ;; subtraction if the negated immediate fits in 12 bits.
-(rule iadd_imm12_neg_right 2 (lower (has_type (fits_in_64 ty) (iadd x y)))
+(rule iadd_imm12_neg_right 2 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd x y)))
       (if-let imm12_neg (imm12_from_negated_value y))
       (sub_imm ty x imm12_neg))
 
-(rule iadd_imm12_neg_left 3 (lower (has_type (fits_in_64 ty) (iadd x y)))
+(rule iadd_imm12_neg_left 3 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd x y)))
       (if-let imm12_neg (imm12_from_negated_value x))
       (sub_imm ty y imm12_neg))
 
 ;; Special cases for when we're adding an extended register where the extending
 ;; operation can get folded into the add itself.
-(rule iadd_extend_right 0 (lower (has_type (fits_in_64 ty) (iadd x (extended_value_from_value y))))
+(rule iadd_extend_right 0 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd x (extended_value_from_value y))))
       (add_extend ty x y))
 
-(rule iadd_extend_left 1 (lower (has_type (fits_in_64 ty) (iadd (extended_value_from_value x) y)))
+(rule iadd_extend_left 1 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd (extended_value_from_value x) y)))
       (add_extend ty y x))
 
 ;; Special cases for when we're adding the shift of a different
 ;; register by a constant amount and the shift can get folded into the add.
-(rule iadd_ishl_right 7 (lower (has_type (fits_in_64 ty)
+(rule iadd_ishl_right 7 (lower (has_type (ty_int_ref_scalar_64 ty)
                        (iadd x (ishl y (iconst k)))))
       (if-let amt (lshl_from_imm64 ty k))
       (add_shift ty x y amt))
 
-(rule iadd_ishl_left 6 (lower (has_type (fits_in_64 ty)
+(rule iadd_ishl_left 6 (lower (has_type (ty_int_ref_scalar_64 ty)
                        (iadd (ishl x (iconst k)) y)))
       (if-let amt (lshl_from_imm64 ty k))
       (add_shift ty y x amt))
 
 ;; Fold an `iadd` and `imul` combination into a `madd` instruction.
-(rule iadd_imul_right 7 (lower (has_type (fits_in_64 ty) (iadd x (imul y z))))
+(rule iadd_imul_right 7 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd x (imul y z))))
       (madd ty y z x))
 
-(rule iadd_imul_left 6 (lower (has_type (fits_in_64 ty) (iadd (imul x y) z)))
+(rule iadd_imul_left 6 (lower (has_type (ty_int_ref_scalar_64 ty) (iadd (imul x y) z)))
       (madd ty x y z))
 
 ;; Fold an `isub` and `imul` combination into a `msub` instruction.
-(rule isub_imul (lower (has_type (fits_in_64 ty) (isub x (imul y z))))
+(rule isub_imul (lower (has_type (ty_int_ref_scalar_64 ty) (isub x (imul y z))))
       (msub ty y z x))
 
 ;; vectors
@@ -720,27 +720,27 @@
 ;; `i64` and smaller
 
 ;; Base case, simply subtracting things in registers.
-(rule isub_base_case -4 (lower (has_type (fits_in_64 ty) (isub x y)))
+(rule isub_base_case -4 (lower (has_type (ty_int_ref_scalar_64 ty) (isub x y)))
       (sub ty x y))
 
 ;; Special case for when one operand is an immediate that fits in 12 bits.
-(rule isub_imm12 0 (lower (has_type (fits_in_64 ty) (isub x (imm12_from_value y))))
+(rule isub_imm12 0 (lower (has_type (ty_int_ref_scalar_64 ty) (isub x (imm12_from_value y))))
       (sub_imm ty x y))
 
 ;; Same as the previous special case, except we can switch the subtraction to an
 ;; addition if the negated immediate fits in 12 bits.
-(rule isub_imm12_neg 2 (lower (has_type (fits_in_64 ty) (isub x y)))
+(rule isub_imm12_neg 2 (lower (has_type (ty_int_ref_scalar_64 ty) (isub x y)))
       (if-let imm12_neg (imm12_from_negated_value y))
       (add_imm ty x imm12_neg))
 
 ;; Special cases for when we're subtracting an extended register where the
 ;; extending operation can get folded into the sub itself.
-(rule isub_extend 1 (lower (has_type (fits_in_64 ty) (isub x (extended_value_from_value y))))
+(rule isub_extend 1 (lower (has_type (ty_int_ref_scalar_64 ty) (isub x (extended_value_from_value y))))
       (sub_extend ty x y))
 
 ;; Finally a special case for when we're subtracting the shift of a different
 ;; register by a constant amount and the shift can get folded into the sub.
-(rule isub_ishl -3 (lower (has_type (fits_in_64 ty)
+(rule isub_ishl -3 (lower (has_type (ty_int_ref_scalar_64 ty)
                        (isub x (ishl y (iconst k)))))
       (if-let amt (lshl_from_imm64 ty k))
       (sub_shift ty x y amt))
@@ -790,7 +790,7 @@
 ;;;; Rules for `imul` ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; `i64` and smaller.
-(rule imul_base_case -3 (lower (has_type (fits_in_64 ty) (imul x y)))
+(rule imul_base_case -3 (lower (has_type (ty_int_ref_scalar_64 ty) (imul x y)))
       (madd ty x y (zero_reg)))
 
 ;; `i128`.
@@ -841,8 +841,8 @@
           (madd $I64 x y (zero_reg))
           (smulh $I64 x y))))
 
-;; Case for i8x16, i16x8, and i32x4.
-(rule -2 (lower (has_type (ty_vec128 ty @ (not_i64x2)) (imul x y)))
+;; vectors (i8x8/i8x16/i16x4/i16x8/i32x2/i32x4)
+(rule -2 (lower (has_type (lane_fits_in_32 ty @ (multi_lane _ _)) (imul x y)))
       (mul x y (vector_size ty)))
 
 ;; Special lowering for i64x2.
