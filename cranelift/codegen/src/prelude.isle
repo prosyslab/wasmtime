@@ -100,6 +100,21 @@
 (decl pure imm64_neg (Type Imm64) Imm64)
 (extern constructor imm64_neg imm64_neg)
 
+(decl pure partial imm64_abs (Type Imm64) Imm64)
+(extern constructor imm64_abs imm64_abs)
+
+(decl pure imm64_umin (Type Imm64 Imm64) Imm64)
+(extern constructor imm64_umin imm64_umin)
+
+(decl pure imm64_umax (Type Imm64 Imm64) Imm64)
+(extern constructor imm64_umax imm64_umax)
+
+(decl pure imm64_smin (Type Imm64 Imm64) Imm64)
+(extern constructor imm64_smin imm64_smin)
+
+(decl pure imm64_smax (Type Imm64 Imm64) Imm64)
+(extern constructor imm64_smax imm64_smax)
+
 (decl pure imm64_shl (Type Imm64 Imm64) Imm64)
 (extern constructor imm64_shl imm64_shl)
 
