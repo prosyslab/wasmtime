@@ -90,6 +90,54 @@ macro_rules! isle_common_prelude_methods {
         }
 
         #[inline]
+        fn imm64_add(&mut self, ty: Type, x: Imm64, y: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new(x.bits().wrapping_add(y.bits()) & ty_mask)
+        }
+
+        #[inline]
+        fn imm64_sub(&mut self, ty: Type, x: Imm64, y: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new(x.bits().wrapping_sub(y.bits()) & ty_mask)
+        }
+
+        #[inline]
+        fn imm64_mul(&mut self, ty: Type, x: Imm64, y: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new(x.bits().wrapping_mul(y.bits()) & ty_mask)
+        }
+
+        #[inline]
+        fn imm64_and(&mut self, ty: Type, x: Imm64, y: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new((x.bits() & y.bits()) & ty_mask)
+        }
+
+        #[inline]
+        fn imm64_or(&mut self, ty: Type, x: Imm64, y: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new((x.bits() | y.bits()) & ty_mask)
+        }
+
+        #[inline]
+        fn imm64_xor(&mut self, ty: Type, x: Imm64, y: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new((x.bits() ^ y.bits()) & ty_mask)
+        }
+
+        #[inline]
+        fn imm64_not(&mut self, ty: Type, x: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new((!x.bits()) & ty_mask)
+        }
+
+        #[inline]
+        fn imm64_neg(&mut self, ty: Type, x: Imm64) -> Imm64 {
+            let ty_mask = self.ty_mask(ty) as i64;
+            Imm64::new(x.bits().wrapping_neg() & ty_mask)
+        }
+
+        #[inline]
         fn imm64_shl(&mut self, ty: Type, x: Imm64, y: Imm64) -> Imm64 {
             // Mask off any excess shift bits.
             let shift_mask = (ty.bits() - 1) as u64;
