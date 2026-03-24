@@ -2637,6 +2637,11 @@ impl TermEnv {
             .and_then(|sym| self.term_map.get(&sym))
             .copied()
     }
+
+    /// Lookup the declared converter term for a type pair.
+    pub fn get_converter_term_id(&self, inner_ty: TypeId, outer_ty: TypeId) -> Option<TermId> {
+        self.converters.get(&(inner_ty, outer_ty)).copied()
+    }
 }
 
 #[cfg(test)]
