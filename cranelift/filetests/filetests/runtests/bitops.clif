@@ -111,3 +111,14 @@ block0(v0: i64, v1: i64):
     return v4
 }
 ; run: %a64_extr_i64_12_swap(0x0102_0304_0506_0708, 0x090a_0b0c_0d0e_0f00) == 0x708_090a_0b0c_0d0e_0
+
+function %test_aarch64_extr(i32, i32) -> i32 fast {
+block0(v0: i32, v1: i32):
+    v2 = ishl_imm v0, 32
+    v3 = ushr_imm v1, 0
+    v4 = bor v2, v3
+    return v4
+}
+
+; run: %test_aarch64_extr(1, 0) == 1
+; run: %test_aarch64_extr(0, 1) == 1
