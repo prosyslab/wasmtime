@@ -1,13 +1,6 @@
 ;;! custom_page_sizes = true
 ;;! hogs_memory = true
 
-;; FIXME(WebAssembly/custom-page-sizes#45): unclear what the semantics of this
-;; test should be. For now Wasmtime traps so this tests that traps happen, but
-;; this may change in the specification itself. Either way the problem here is
-;; that with 1-byte pages an allocation of 0xffff_ffff bytes is
-;; indistinguishable from a growth failure which returns -1. Somehow this needs
-;; reconciliation and for now it's done as a trap.
-
 (assert_trap
   (module
     (memory 0xffff_ffff (pagesize 1))
