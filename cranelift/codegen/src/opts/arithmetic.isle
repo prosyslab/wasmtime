@@ -15,10 +15,10 @@
                       (iconst_u ty 0)))
       (subsume x))
 ;; 0-x == (ineg x).
-(rule (simplify (isub ty
-                      (iconst_u ty 0)
-                      x))
-      (ineg ty x))
+;; (rule (simplify (isub ty
+;;                       (iconst_u ty 0)
+;;                       x))
+;;       (ineg ty x))
 
 ;; x + -y == -y + x == -(y - x) == x - y
 (rule (simplify (iadd ty x (ineg ty y)))

@@ -124,40 +124,40 @@
 ;;
 ;;   (op k x) --> (op x k)
 
-(rule (simplify
-       (iadd ty k @ (iconst ty _) x))
-      (iadd ty x k))
+;; (rule (simplify
+;;        (iadd ty k @ (iconst ty _) x))
+;;       (iadd ty x k))
 ;; sub is not commutative, but we can flip the args and negate the
 ;; whole thing.
-(rule (simplify
-       (isub ty k @ (iconst ty _) x))
-      (ineg ty (isub ty x k)))
-(rule (simplify
-       (imul ty k @ (iconst ty _) x))
-      (imul ty x k))
+;; (rule (simplify
+;;        (isub ty k @ (iconst ty _) x))
+;;       (ineg ty (isub ty x k)))
+;; (rule (simplify
+;;        (imul ty k @ (iconst ty _) x))
+;;       (imul ty x k))
 
-(rule (simplify
-       (bor ty k @ (iconst ty _) x))
-      (bor ty x k))
-(rule (simplify
-       (band ty k @ (iconst ty _) x))
-      (band ty x k))
-(rule (simplify
-       (bxor ty k @ (iconst ty _) x))
-      (bxor ty x k))
+;; (rule (simplify
+;;        (bor ty k @ (iconst ty _) x))
+;;       (bor ty x k))
+;; (rule (simplify
+;;        (band ty k @ (iconst ty _) x))
+;;       (band ty x k))
+;; (rule (simplify
+;;        (bxor ty k @ (iconst ty _) x))
+;;       (bxor ty x k))
 
-(rule (simplify
-       (icmp ty cc k @ (iconst _ _) x))
-      (icmp ty (intcc_swap_args cc) x k))
+;; (rule (simplify
+;;        (icmp ty cc k @ (iconst _ _) x))
+;;       (icmp ty (intcc_swap_args cc) x k))
 
 ;; Canonicalize via associativity: reassociate to a right-heavy tree
 ;; for constants.
 ;;
 ;;   (op (op x k) k) --> (op x (op k k))
 
-(rule (simplify
-       (iadd ty (iadd ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (iadd ty x (iadd ty k1 k2)))
+;; (rule (simplify
+;;        (iadd ty (iadd ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+;;       (iadd ty x (iadd ty k1 k2)))
 ;; sub is not directly associative, but we can flip a sub to an add to
 ;; make it work:
 ;; - (sub (sub x k1) k2) -> (sub x (add k1 k2))
@@ -186,18 +186,18 @@
                       (iconst ty (u64_from_imm64 k2))))
       (isub ty (iconst ty (imm64_masked ty (u64_wrapping_add k1 k2))) x))
 
-(rule (simplify
-       (imul ty (imul ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (imul ty x (imul ty k1 k2)))
-(rule (simplify
-       (bor ty (bor ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (bor ty x (bor ty k1 k2)))
-(rule (simplify
-       (band ty (band ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (band ty x (band ty k1 k2)))
-(rule (simplify
-       (bxor ty (bxor ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (bxor ty x (bxor ty k1 k2)))
+;; (rule (simplify
+;;        (imul ty (imul ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+;;       (imul ty x (imul ty k1 k2)))
+;; (rule (simplify
+;;        (bor ty (bor ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+;;       (bor ty x (bor ty k1 k2)))
+;; (rule (simplify
+;;        (band ty (band ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+;;       (band ty x (band ty k1 k2)))
+;; (rule (simplify
+;;        (bxor ty (bxor ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
+;;       (bxor ty x (bxor ty k1 k2)))
 
 (rule (simplify (select ty (iconst_u _ (u64_when_non_zero)) x _))
       (subsume x))
@@ -206,20 +206,20 @@
 
 ;; Reassociate across `==`/`!=` when we can simplify a constant
 ;; `x + K1 == K2` --> `x == K2 - K1`
-(rule (simplify (eq ty1 (iadd ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (eq ty1 x (isub ty2 k2 k1)))
-(rule (simplify (ne ty1 (iadd ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (ne ty1 x (isub ty2 k2 k1)))
+;; (rule (simplify (eq ty1 (iadd ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
+;;       (eq ty1 x (isub ty2 k2 k1)))
+;; (rule (simplify (ne ty1 (iadd ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
+;;       (ne ty1 x (isub ty2 k2 k1)))
 ;; `x - K1 == K2` --> `x == K2 + K1`
-(rule (simplify (eq ty1 (isub ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (eq ty1 x (iadd ty2 k2 k1)))
-(rule (simplify (ne ty1 (isub ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
-      (ne ty1 x (iadd ty2 k2 k1)))
+;; (rule (simplify (eq ty1 (isub ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
+;;       (eq ty1 x (iadd ty2 k2 k1)))
+;; (rule (simplify (ne ty1 (isub ty2 x k1@(iconst _ _)) k2@(iconst _ _)))
+;;       (ne ty1 x (iadd ty2 k2 k1)))
 ;; `x + K1 == y + K2` --> `x == y + (K2 - K1)`
-(rule (simplify (eq ty1 (iadd ty2 x k1@(iconst _ _)) (iadd ty3 y k2@(iconst _ _))))
-      (eq ty1 x (iadd ty2 y (isub ty3 k2 k1))))
-(rule (simplify (ne ty1 (iadd ty2 x k1@(iconst _ _)) (iadd ty3 y k2@(iconst _ _))))
-      (ne ty1 x (iadd ty2 y (isub ty3 k2 k1))))
+;; (rule (simplify (eq ty1 (iadd ty2 x k1@(iconst _ _)) (iadd ty3 y k2@(iconst _ _))))
+;;       (eq ty1 x (iadd ty2 y (isub ty3 k2 k1))))
+;; (rule (simplify (ne ty1 (iadd ty2 x k1@(iconst _ _)) (iadd ty3 y k2@(iconst _ _))))
+;;       (ne ty1 x (iadd ty2 y (isub ty3 k2 k1))))
 ;; An icmp rule normalizes (eq sub sub), so we don't need to handle it here.
 
 ;; Replace subtraction by a "negative" constant with addition.
@@ -228,10 +228,10 @@
 ;; TODO: it would be nice to do this for `x + (-1) == x - 1` as well, but
 ;; that needs work in lowering first to avoid regressing addressing modes.
 
-(rule (simplify (isub ty x (iconst_s ty k)))
-      (if-let true (u64_lt (i64_cast_unsigned (i64_wrapping_neg k))
-                           (i64_cast_unsigned k)))
-      (iadd ty x (iconst ty (imm64_masked ty (i64_cast_unsigned (i64_wrapping_neg k))))))
+;; (rule (simplify (isub ty x (iconst_s ty k)))
+;;       (if-let true (u64_lt (i64_cast_unsigned (i64_wrapping_neg k))
+;;                            (i64_cast_unsigned k)))
+;;       (iadd ty x (iconst ty (imm64_masked ty (i64_cast_unsigned (i64_wrapping_neg k))))))
 
 ;; A splat of a constant can become a direct `vconst` with the appropriate bit
 ;; pattern.
@@ -260,12 +260,12 @@
 ;; Reassociate nested shifts of constants to put constants together for cprop.
 ;;
 ;; ((A shift b) shift C) ==> ((A shift C) shift b)
-(rule (simplify (ishl ty (ishl ty a@(iconst _ _) b) c@(iconst _ _)))
-      (ishl ty (ishl ty a c) b))
-(rule (simplify (ushr ty (ushr ty a@(iconst _ _) b) c@(iconst _ _)))
-      (ushr ty (ushr ty a c) b))
-(rule (simplify (sshr ty (sshr ty a@(iconst _ _) b) c@(iconst _ _)))
-      (sshr ty (sshr ty a c) b))
+;; (rule (simplify (ishl ty (ishl ty a@(iconst _ _) b) c@(iconst _ _)))
+;;       (ishl ty (ishl ty a c) b))
+;; (rule (simplify (ushr ty (ushr ty a@(iconst _ _) b) c@(iconst _ _)))
+;;       (ushr ty (ushr ty a c) b))
+;; (rule (simplify (sshr ty (sshr ty a@(iconst _ _) b) c@(iconst _ _)))
+;;       (sshr ty (sshr ty a c) b))
 
 ;; When we operations that are both commutative and associative, reassociate
 ;; constants together for cprop:
@@ -273,26 +273,26 @@
 ;; ((a op B) op (c op D)) ==> ((a op c) op (B op D))
 ;;
 ;; Where `op` is one of: `iadd`, `imul`, `band`, `bor`, or `bxor`.
-(rule (simplify (iadd ty
-                      (iadd ty a b@(iconst _ _))
-                      (iadd ty c d@(iconst _ _))))
-      (iadd ty (iadd ty a c) (iadd ty b d)))
-(rule (simplify (imul ty
-                      (imul ty a b@(iconst _ _))
-                      (imul ty c d@(iconst _ _))))
-      (imul ty (imul ty a c) (imul ty b d)))
-(rule (simplify (band ty
-                      (band ty a b@(iconst _ _))
-                      (band ty c d@(iconst _ _))))
-      (band ty (band ty a c) (band ty b d)))
-(rule (simplify (bor ty
-                      (bor ty a b@(iconst _ _))
-                      (bor ty c d@(iconst _ _))))
-      (bor ty (bor ty a c) (bor ty b d)))
-(rule (simplify (bxor ty
-                      (bxor ty a b@(iconst _ _))
-                      (bxor ty c d@(iconst _ _))))
-      (bxor ty (bxor ty a c) (bxor ty b d)))
+;; (rule (simplify (iadd ty
+;;                       (iadd ty a b@(iconst _ _))
+;;                       (iadd ty c d@(iconst _ _))))
+;;       (iadd ty (iadd ty a c) (iadd ty b d)))
+;; (rule (simplify (imul ty
+;;                       (imul ty a b@(iconst _ _))
+;;                       (imul ty c d@(iconst _ _))))
+;;       (imul ty (imul ty a c) (imul ty b d)))
+;; (rule (simplify (band ty
+;;                       (band ty a b@(iconst _ _))
+;;                       (band ty c d@(iconst _ _))))
+;;       (band ty (band ty a c) (band ty b d)))
+;; (rule (simplify (bor ty
+;;                       (bor ty a b@(iconst _ _))
+;;                       (bor ty c d@(iconst _ _))))
+;;       (bor ty (bor ty a c) (bor ty b d)))
+;; (rule (simplify (bxor ty
+;;                       (bxor ty a b@(iconst _ _))
+;;                       (bxor ty c d@(iconst _ _))))
+;;       (bxor ty (bxor ty a c) (bxor ty b d)))
 
 
 ;; Constant fold int-to-float conversions.
