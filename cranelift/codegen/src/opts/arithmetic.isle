@@ -47,7 +47,7 @@
       (subsume inner))
 
 ;; x-x == 0.
-(rule (simplify (isub (ty_int ty) x x)) (subsume (iconst_u ty 0)))
+(rule (simplify (isub ty x x)) (subsume (iconst_u ty 0)))
 
 ;; x*1 == x.
 (rule (simplify (imul ty
@@ -221,3 +221,10 @@
       (fcvt_from_uint ty val))
 (rule (simplify (fcvt_from_sint ty (sextend _ val)))
       (fcvt_from_sint ty val))
+
+;; Helper to create a "true" value for a comparison. For scalar integers this is
+;; a value of 1 but for vectors this is -1 since each lane is filled with all
+;; 1s.
+(decl cmp_true (Type) Value)
+(rule 0 (cmp_true (ty_int ty)) (iconst_u ty 1))
+(rule 1 (cmp_true (ty_vec128 ty)) (iconst_s ty -1))
