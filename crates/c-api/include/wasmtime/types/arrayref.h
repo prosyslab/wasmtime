@@ -7,10 +7,6 @@
 #ifndef WASMTIME_TYPES_ARRAYREF_H
 #define WASMTIME_TYPES_ARRAYREF_H
 
-#include <wasmtime/conf.h>
-
-#ifdef WASMTIME_FEATURE_GC
-
 #include <wasm.h>
 #include <wasmtime/types/structref.h>
 
@@ -41,14 +37,23 @@ wasmtime_array_type_new(const wasm_engine_t *engine,
                         const wasmtime_field_type_t *field);
 
 /**
+ * \brief Clone an array type.
+ */
+WASM_API_EXTERN wasmtime_array_type_t *
+wasmtime_array_type_copy(const wasmtime_array_type_t *ty);
+
+/**
  * \brief Delete an array type.
  */
 WASM_API_EXTERN void wasmtime_array_type_delete(wasmtime_array_type_t *ty);
 
+/// \brief Get the element type of an array type.
+WASM_API_EXTERN void
+wasmtime_array_type_element(const wasmtime_array_type_t *ty,
+                            wasmtime_field_type_t *out);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
-
-#endif // WASMTIME_FEATURE_GC
 
 #endif // WASMTIME_TYPES_ARRAYREF_H
