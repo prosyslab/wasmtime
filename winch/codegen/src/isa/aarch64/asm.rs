@@ -410,6 +410,11 @@ impl Assembler {
         self.alu_rrr_extend(ALUOp::AddS, rm, rn, rd, size, ExtendOp::UXTX);
     }
 
+    /// Add with carry, three registers.
+    pub fn adc_rrr(&mut self, rm: Reg, rn: Reg, rd: WritableReg, size: OperandSize) {
+        self.alu_rrr(ALUOp::Adc, rm, rn, rd, size);
+    }
+
     /// Add across Vector.
     pub fn addv(&mut self, rn: Reg, rd: WritableReg, size: VectorSize) {
         self.emit(Inst::VecLanes {
@@ -436,20 +441,28 @@ impl Assembler {
     }
 
     /// Subtract with three registers, setting flags.
-    pub fn subs_rrr(&mut self, rm: Reg, rn: Reg, size: OperandSize) {
-        self.alu_rrr_extend(
-            ALUOp::SubS,
-            rm,
-            rn,
-            writable!(regs::zero()),
-            size,
-            ExtendOp::UXTX,
-        );
+    pub fn subs_rrr(&mut self, rm: Reg, rn: Reg, rd: WritableReg, size: OperandSize) {
+        self.alu_rrr_extend(ALUOp::SubS, rm, rn, rd, size, ExtendOp::UXTX);
+    }
+
+    /// Subtract with carry, three registers.
+    pub fn sbc_rrr(&mut self, rm: Reg, rn: Reg, rd: WritableReg, size: OperandSize) {
+        self.alu_rrr(ALUOp::Sbc, rm, rn, rd, size);
     }
 
     /// Multiply with three registers.
     pub fn mul_rrr(&mut self, rm: Reg, rn: Reg, rd: WritableReg, size: OperandSize) {
         self.alu_rrrr(ALUOp3::MAdd, rm, rn, rd, regs::zero(), size);
+    }
+
+    /// Unsigned multiply, writing the high 64 bits of the 128-bit result.
+    pub fn umulh_rrr(&mut self, rm: Reg, rn: Reg, rd: WritableReg) {
+        self.alu_rrr(ALUOp::UMulH, rm, rn, rd, OperandSize::S64);
+    }
+
+    /// Signed multiply, writing the high 64 bits of the 128-bit result.
+    pub fn smulh_rrr(&mut self, rm: Reg, rn: Reg, rd: WritableReg) {
+        self.alu_rrr(ALUOp::SMulH, rm, rn, rd, OperandSize::S64);
     }
 
     /// Signed/unsigned division with three registers.
