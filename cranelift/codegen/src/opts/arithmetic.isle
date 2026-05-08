@@ -1,0 +1,18 @@
+;; shootout-random fix
+
+;; General cases for `urem` with constant divisors.
+(rule (simplify_skeleton (urem x (iconst_u $I32 (u64_extract_non_zero (u32_from_u64 d)))))
+      (if-let false (u32_is_power_of_two d))
+      (apply_div_const_magic_u32 (Opcode.Urem) x d))
+(rule (simplify_skeleton (urem x (iconst_u $I64 (u64_extract_non_zero d))))
+      (if-let false (u64_is_power_of_two d))
+      (apply_div_const_magic_u64 (Opcode.Urem) x d))
+
+;; General cases for `srem` with constant divisors.
+(rule (simplify_skeleton (srem x (iconst_s $I32 (i64_extract_non_zero (i32_from_i64 d)))))
+      (if-let false (i64_is_any_sign_power_of_two d))
+      (apply_div_const_magic_s32 (Opcode.Srem) x d))
+(rule (simplify_skeleton (srem x (iconst_s $I64 (i64_extract_non_zero d))))
+      (if-let false (i64_is_any_sign_power_of_two d))
+      (apply_div_const_magic_s64 (Opcode.Srem) x d))
+
