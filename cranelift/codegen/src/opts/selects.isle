@@ -1,0 +1,6 @@
+;; fixing rust-compression?
+
+(rule (simplify
+       (select ty (uextend _ c @ (icmp _ _ _ _)) x y))
+      (select ty c x y))
+
