@@ -13,3 +13,29 @@
 (rule (truthy (rotr _ x _)) x)
 (rule (truthy (select _ x (iconst_u _ (u64_when_non_zero)) (iconst_u _ 0))) x)
 
+;; Temporary rust-compression experiment: collect suspected missing human rules
+;; here for quick benchmarking.
+(rule (simplify (select ty v t f))
+      (if-let c (truthy v))
+      (select ty c t f))
+
+(rule (simplify
+       (icmp ty cc k @ (iconst _ _) x))
+      (icmp ty (intcc_swap_args cc) x k))
+
+(rule (simplify
+       (icmp result_ty
+             cc
+             (iconst ty k1)
+             (iconst ty k2)))
+      (subsume (iconst result_ty (imm64_icmp ty cc k1 k2))))
+
+(rule (simplify (ireduce ty (iadd _ x y)))
+      (iadd ty (ireduce ty x) (ireduce ty y)))
+
+(rule (simplify (uextend (fits_in_64 wide) (iconst_u narrow k)))
+      (subsume (iconst_u wide k)))
+
+(rule (simplify
+       (isub ty k @ (iconst ty _) x))
+      (ineg ty (isub ty x k)))
