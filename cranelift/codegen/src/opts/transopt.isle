@@ -1689,6 +1689,9 @@
 (rule (simplify (bxor ty (bxor ty x y) (bxor ty z y))) (bxor ty x z))
 (rule (simplify (bxor ty (bxor ty x y) x)) y)
 (rule (simplify (bxor ty (bxor ty x y) y)) x)
+;; FIX: keccak
+(rule (simplify (bxor ty (iconst_s ty -1) x)) (bnot ty x))
+(rule (simplify (bxor ty x (iconst_s ty -1))) (bnot ty x))
 (rule (simplify (bxor ty (eq ty (iconst cty x) y) (iconst_u ty 1))) (ne ty (iconst cty x) y))
 (rule (simplify (bxor ty (eq ty (iconst cty x) y) (ne ty y (iconst cty x)))) (iconst_u ty 1))
 (rule (simplify (bxor ty (eq ty x (iconst cty y)) (iconst_u ty 1))) (ne ty x (iconst cty y)))
