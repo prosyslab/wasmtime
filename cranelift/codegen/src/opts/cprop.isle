@@ -26,3 +26,7 @@
 (decl ieee128_constant (Ieee128) Constant)
 (extern constructor ieee128_constant ieee128_constant)
 (extern extractor ieee128_constant ieee128_constant_extractor)
+
+;; also wish!
+(rule (simplify (iadd ty k @ (iconst ty _) x)) (iadd ty x k))
+
