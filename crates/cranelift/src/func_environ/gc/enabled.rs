@@ -105,7 +105,7 @@ fn unbarriered_store_gc_ref(
     Ok(())
 }
 
-/// Emit CLIF to call the `gc_raw_alloc` libcall.
+/// Emit CLIF to call the `gc_alloc_raw` libcall.
 #[cfg(any(feature = "gc-drc", feature = "gc-copying"))]
 fn emit_gc_raw_alloc(
     func_env: &mut FuncEnvironment<'_>,
