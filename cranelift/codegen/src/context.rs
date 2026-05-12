@@ -387,6 +387,12 @@ impl Context {
         log::debug!("egraph stats: {:?}", pass.stats);
         trace!("After egraph optimization:\n{}", self.func.display());
 
-        self.verify_if(fisa)
+        // Branch optimizations can invalidate these; recompute them.
+        self.compute_cfg();
+        self.compute_domtree();
+
+        self.verify_if(fisa)?;
+
+        Ok(())
     }
 }
