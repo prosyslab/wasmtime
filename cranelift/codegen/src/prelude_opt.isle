@@ -142,6 +142,7 @@
     (if-let true (i64_eq c c_reextended))
     (iconst ty (imm64 c_masked)))
 (rule 1 (iconst_s $I128 c) (sextend $I128 (iconst_s $I64 c)))
+(rule 2 (iconst_s (ty_vec128 ty) c) (splat ty (iconst_s (lane_type ty) c)))
 
 ;; Construct an `iconst` from a `u64` or Extract a `u64` from an `iconst`
 ;; by treating the constant as unsigned.
@@ -157,6 +158,7 @@
     (if-let true (u64_lt_eq c (ty_umax ty)))
     (iconst ty (imm64 c)))
 (rule 1 (iconst_u $I128 c) (uextend $I128 (iconst_u $I64 c)))
+(rule 2 (iconst_u (ty_vec128 ty) c) (splat ty (iconst_u (lane_type ty) c)))
 
 ;; These take `Value`, rather than going through `inst_data_value_tupled`,
 ;; because most of the time they want to return the original `Value`, and it
