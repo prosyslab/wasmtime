@@ -464,12 +464,12 @@ impl InterpreterRef<'_> {
             match kind {
                 Some(kind) => {
                     let trap = match kind {
-                        TrapKind::IntegerOverflow => Trap::IntegerOverflow,
-                        TrapKind::DivideByZero => Trap::IntegerDivisionByZero,
-                        TrapKind::BadConversionToInteger => Trap::BadConversionToInteger,
-                        TrapKind::MemoryOutOfBounds => Trap::MemoryOutOfBounds,
-                        TrapKind::DisabledOpcode => Trap::DisabledOpcode,
-                        TrapKind::StackOverflow => Trap::StackOverflow,
+                        TrapKind::IntegerOverflow => Trap::IntegerOverflow.into(),
+                        TrapKind::DivideByZero => Trap::IntegerDivisionByZero.into(),
+                        TrapKind::BadConversionToInteger => Trap::BadConversionToInteger.into(),
+                        TrapKind::MemoryOutOfBounds => Trap::MemoryOutOfBounds.into(),
+                        TrapKind::DisabledOpcode => Trap::DisabledOpcode.into(),
+                        TrapKind::StackOverflow => Trap::StackOverflow.into(),
                     };
                     s.set_jit_trap(regs, None, trap);
                     s.entry_trap_handler()
