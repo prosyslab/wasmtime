@@ -1277,6 +1277,10 @@ impl<T: GcRef> Rooted<T> {
         let gc_ref = store.clone_gc_ref(&gc_ref);
         Some(from_cloned_gc_ref(store, gc_ref))
     }
+
+    pub(crate) fn try_gc_ref<'a>(&self, store: &'a StoreOpaque) -> Result<&'a VMGcRef> {
+        <Self as RootedGcRefImpl<_>>::try_gc_ref(self, store)
+    }
 }
 
 /// Nested rooting scopes.
