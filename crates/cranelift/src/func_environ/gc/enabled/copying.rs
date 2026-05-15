@@ -53,13 +53,13 @@ impl CopyingCompiler {
     ) -> (ir::Value, ir::Value) {
         let bump_ptr = builder.ins().load(
             ir::types::I32,
-            ir::MemFlagsData::trusted().with_can_move(),
+            ir::MemFlagsData::trusted(),
             ptr_to_heap_data,
             i32::from(func_env.offsets.ptr.vmcopying_heap_data_bump_ptr()),
         );
         let active_space_end = builder.ins().load(
             ir::types::I32,
-            ir::MemFlagsData::trusted().with_readonly().with_can_move(),
+            ir::MemFlagsData::trusted(),
             ptr_to_heap_data,
             i32::from(func_env.offsets.ptr.vmcopying_heap_data_active_space_end()),
         );
@@ -254,6 +254,10 @@ impl CopyingCompiler {
 impl GcCompiler for CopyingCompiler {
     fn layouts(&self) -> &dyn GcTypeLayouts {
         &self.layouts
+    }
+
+    fn is_moving_collector(&self) -> bool {
+        true
     }
 
     fn alloc_array(
