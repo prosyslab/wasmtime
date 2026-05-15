@@ -33,3 +33,7 @@
       (if-let false (i64_is_any_sign_power_of_two d))
       (apply_div_const_magic_s64 (Opcode.Srem) x d))
 
+;; new way to represent True
+(decl cmp_true (Type) Value)
+(rule 0 (cmp_true (ty_int ty)) (iconst_u ty 1))
+(rule 1 (cmp_true (ty_vec128 ty)) (iconst_s ty -1))
