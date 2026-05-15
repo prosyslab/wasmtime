@@ -13,3 +13,5 @@
 (rule (truthy (rotr _ x _)) x)
 (rule (truthy (select _ x (iconst_u _ (u64_when_non_zero)) (iconst_u _ 0))) x)
 
+(rule (simplify (select ty v t f)) (if-let c (truthy v)) (select ty c t f))
+
