@@ -1,4 +1,4 @@
-test optimize
+test optimize precise-output
 set opt_level=speed
 target x86_64
 
@@ -9,8 +9,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 41
-; nextln: return v3
+; function %f0() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 41
+;     return v3  ; v3 = 41
+; }
 
 function %f1() -> i16 {
 block0:
@@ -19,8 +22,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i16 -2
-; nextln: return v3
+; function %f1() -> i16 fast {
+; block0:
+;     v3 = iconst.i16 -2
+;     return v3  ; v3 = -2
+; }
 
 function %f0() -> i8 {
 block0:
@@ -29,6 +35,12 @@ block0:
     return v2
 }
 
+; function %f0() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 2
+;     return v3  ; v3 = 2
+; }
+
 function %f0() -> i16 {
 block0:
     v1 = iconst.i16 51
@@ -36,8 +48,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i16 10
-; nextln: return v3
+; function %f0() -> i16 fast {
+; block0:
+;     v3 = iconst.i16 10
+;     return v3  ; v3 = 10
+; }
 
 function %f0() -> i16 {
 block0:
@@ -46,8 +61,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i16 4
-; nextln: return v3
+; function %f0() -> i16 fast {
+; block0:
+;     v3 = iconst.i16 4
+;     return v3  ; v3 = 4
+; }
 
 function %f0() -> i16 {
 block0:
@@ -56,8 +74,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i16 16
-; nextln: return v3
+; function %f0() -> i16 fast {
+; block0:
+;     v3 = iconst.i16 16
+;     return v3  ; v3 = 16
+; }
 
 function %ishl() -> i8 {
 block0:
@@ -67,8 +88,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 4
-; check: return v3
+; function %ishl() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 4
+;     return v3  ; v3 = 4
+; }
 
 function %ishl_i8_i16() -> i8 {
 block0:
@@ -78,8 +102,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 4
-; check: return v3
+; function %ishl_i8_i16() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 4
+;     return v3  ; v3 = 4
+; }
 
 function %ishl_i16_i8() -> i16 {
 block0:
@@ -89,8 +116,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i16 4
-; check: return v3
+; function %ishl_i16_i8() -> i16 fast {
+; block0:
+;     v3 = iconst.i16 4
+;     return v3  ; v3 = 4
+; }
 
 function %ushr() -> i8 {
 block0:
@@ -100,8 +130,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 63
-; check: return v3
+; function %ushr() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 63
+;     return v3  ; v3 = 63
+; }
 
 function %ushr_i8_i16() -> i8 {
 block0:
@@ -111,8 +144,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 63
-; check: return v3
+; function %ushr_i8_i16() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 63
+;     return v3  ; v3 = 63
+; }
 
 function %ushr_i16_i8() -> i16 {
 block0:
@@ -122,8 +158,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i16 0x3fff
-; check: return v3
+; function %ushr_i16_i8() -> i16 fast {
+; block0:
+;     v3 = iconst.i16 0x3fff
+;     return v3  ; v3 = 0x3fff
+; }
 
 function %sshr() -> i8 {
 block0:
@@ -133,8 +172,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 -4
-; check: return v3
+; function %sshr() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 -4
+;     return v3  ; v3 = -4
+; }
 
 function %sshr_i8_i16() -> i8 {
 block0:
@@ -144,8 +186,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 -4
-; check: return v3
+; function %sshr_i8_i16() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 -4
+;     return v3  ; v3 = -4
+; }
 
 function %sshr_i16_i8() -> i16 {
 block0:
@@ -155,8 +200,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i16 -4
-; check: return v3
+; function %sshr_i16_i8() -> i16 fast {
+; block0:
+;     v3 = iconst.i16 -4
+;     return v3  ; v3 = -4
+; }
 
 function %icmp_eq_i32() -> i8 {
 block0:
@@ -166,8 +214,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 0
-; nextln: return v3
+; function %icmp_eq_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 0
+;     return v3  ; v3 = 0
+; }
 
 function %icmp_ne_i32() -> i8 {
 block0:
@@ -177,8 +228,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 1
-; nextln: return v3
+; function %icmp_ne_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 1
+;     return v3  ; v3 = 1
+; }
 
 function %icmp_ult_i32() -> i8 {
 block0:
@@ -188,8 +242,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 1
-; nextln: return v3
+; function %icmp_ult_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 1
+;     return v3  ; v3 = 1
+; }
 
 function %icmp_ule_i32() -> i8 {
 block0:
@@ -199,8 +256,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 1
-; nextln: return v3
+; function %icmp_ule_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 1
+;     return v3  ; v3 = 1
+; }
 
 function %icmp_uge_i32() -> i8 {
 block0:
@@ -210,8 +270,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 0
-; nextln: return v3
+; function %icmp_uge_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 0
+;     return v3  ; v3 = 0
+; }
 
 function %icmp_ugt_i32() -> i8 {
 block0:
@@ -221,8 +284,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 0
-; nextln: return v3
+; function %icmp_ugt_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 0
+;     return v3  ; v3 = 0
+; }
 
 function %icmp_slt_i32() -> i8 {
 block0:
@@ -232,8 +298,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 1
-; nextln: return v3
+; function %icmp_slt_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 1
+;     return v3  ; v3 = 1
+; }
 
 function %icmp_sle_i32() -> i8 {
 block0:
@@ -243,8 +312,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 1
-; nextln: return v3
+; function %icmp_sle_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 1
+;     return v3  ; v3 = 1
+; }
 
 function %icmp_sge_i32() -> i8 {
 block0:
@@ -254,8 +326,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 0
-; nextln: return v3
+; function %icmp_sge_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 0
+;     return v3  ; v3 = 0
+; }
 
 function %icmp_sgt_i32() -> i8 {
 block0:
@@ -265,8 +340,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 0
-; nextln: return v3
+; function %icmp_sgt_i32() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 0
+;     return v3  ; v3 = 0
+; }
 
 function %icmp_sums_same_addend(i32, i32, i32) -> i8 {
 block0(v0: i32, v1: i32, v2: i32):
@@ -276,8 +354,11 @@ block0(v0: i32, v1: i32, v2: i32):
     return v5
 }
 
-; check: v6 = icmp eq v0, v1
-; nextln: return v6
+; function %icmp_sums_same_addend(i32, i32, i32) -> i8 fast {
+; block0(v0: i32, v1: i32, v2: i32):
+;     v6 = icmp eq v0, v1
+;     return v6
+; }
 
 function %icmp_subs_same_minuend(i32, i32, i32) -> i8 {
 block0(v0: i32, v1: i32, v2: i32):
@@ -287,8 +368,11 @@ block0(v0: i32, v1: i32, v2: i32):
     return v5
 }
 
-; check: v9 = icmp eq v2, v1
-; nextln: return v9
+; function %icmp_subs_same_minuend(i32, i32, i32) -> i8 fast {
+; block0(v0: i32, v1: i32, v2: i32):
+;     v9 = icmp eq v2, v1
+;     return v9
+; }
 
 function %icmp_sums_const_addends(i32, i32) -> i8 {
 block0(v0: i32, v1: i32):
@@ -300,10 +384,13 @@ block0(v0: i32, v1: i32):
     return v7
 }
 
-; check: v16 = iconst.i32 333
-; check: v18 = iadd v1, v16
-; check: v19 = icmp eq v0, v18
-; nextln: return v19
+; function %icmp_sums_const_addends(i32, i32) -> i8 fast {
+; block0(v0: i32, v1: i32):
+;     v9 = iconst.i32 333
+;     v18 = iadd v1, v9  ; v9 = 333
+;     v19 = icmp eq v0, v18
+;     return v19
+; }
 
 function %icmp_subs_const_addends(i32, i32) -> i8 {
 block0(v0: i32, v1: i32):
@@ -315,10 +402,13 @@ block0(v0: i32, v1: i32):
     return v7
 }
 
-; check: v40 = iconst.i32 333
-; check: v44 = iadd v0, v40
-; check: v45 = icmp eq v1, v44
-; nextln: return v45
+; function %icmp_subs_const_addends(i32, i32) -> i8 fast {
+; block0(v0: i32, v1: i32):
+;     v36 = iconst.i32 333
+;     v44 = iadd v0, v36  ; v36 = 333
+;     v45 = icmp eq v1, v44
+;     return v45
+; }
 
 function %ireduce_iconst() -> i8 {
 block0:
@@ -327,8 +417,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i8 -10
-; nextln: return v3
+; function %ireduce_iconst() -> i8 fast {
+; block0:
+;     v3 = iconst.i8 -10
+;     return v3  ; v3 = -10
+; }
 
 function %sextend_iconst() -> i32 {
 block0:
@@ -337,8 +430,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i32 -10
-; nextln: return v3
+; function %sextend_iconst() -> i32 fast {
+; block0:
+;     v3 = iconst.i32 -10
+;     return v3  ; v3 = -10
+; }
 
 function %uextend_iconst() -> i32 {
 block0:
@@ -347,8 +443,11 @@ block0:
     return v2
 }
 
-; check: v3 = iconst.i32 0xfff6
-; nextln: return v3
+; function %uextend_iconst() -> i32 fast {
+; block0:
+;     v3 = iconst.i32 0xfff6
+;     return v3  ; v3 = 0xfff6
+; }
 
 function %sub_u8max(i8) -> i8 {
 block0(v0: i8):
@@ -357,9 +456,12 @@ block0(v0: i8):
     return v2
 }
 
-; check: v3 = iconst.i8 1
-; nextln: v4 = iadd v0, v3  ; v3 = 1
-; nextln: return v4
+; function %sub_u8max(i8) -> i8 fast {
+; block0(v0: i8):
+;     v3 = iconst.i8 1
+;     v4 = iadd v0, v3  ; v3 = 1
+;     return v4
+; }
 
 function %sub_u32max(i32) -> i32 {
 block0(v0: i32):
@@ -368,9 +470,12 @@ block0(v0: i32):
     return v2
 }
 
-; check: v3 = iconst.i32 1
-; nextln: v4 = iadd v0, v3  ; v3 = 1
-; nextln: return v4
+; function %sub_u32max(i32) -> i32 fast {
+; block0(v0: i32):
+;     v3 = iconst.i32 1
+;     v4 = iadd v0, v3  ; v3 = 1
+;     return v4
+; }
 
 function %bswap_i16() -> i16 {
 block0:
@@ -379,8 +484,11 @@ block0:
     return v1
 }
 
-; check: v2 = iconst.i16 0x3412
-; nextln: return v2
+; function %bswap_i16() -> i16 fast {
+; block0:
+;     v2 = iconst.i16 0x3412
+;     return v2  ; v2 = 0x3412
+; }
 
 function %bswap_i32() -> i32 {
 block0:
@@ -389,8 +497,11 @@ block0:
     return v1
 }
 
-; check: v2 = iconst.i32 0x7856_3412
-; nextln: return v2
+; function %bswap_i32() -> i32 fast {
+; block0:
+;     v2 = iconst.i32 0x7856_3412
+;     return v2  ; v2 = 0x7856_3412
+; }
 
 function %bswap_i64() -> i64 {
 block0:
@@ -399,8 +510,11 @@ block0:
     return v1
 }
 
-; check: v2 = iconst.i64 -1090226688147180526
-; nextln: return v2
+; function %bswap_i64() -> i64 fast {
+; block0:
+;     v2 = iconst.i64 -1090226688147180526
+;     return v2  ; v2 = -1090226688147180526
+; }
 
 function %f16_fmin() -> f16 {
 block0:
@@ -410,8 +524,11 @@ block0:
     return v3
 }
 
-; check: v4 = f16const -0x1.500p7
-; check: return v4  ; v4 = -0x1.500p7
+; function %f16_fmin() -> f16 fast {
+; block0:
+;     v4 = f16const -0x1.500p7
+;     return v4  ; v4 = -0x1.500p7
+; }
 
 function %f16_fmin_zero_1() -> f16 {
 block0:
@@ -421,8 +538,11 @@ block0:
     return v3
 }
 
-; check: v4 = f16const -0.0
-; check: return v4  ; v4 = -0.0
+; function %f16_fmin_zero_1() -> f16 fast {
+; block0:
+;     v4 = f16const -0.0
+;     return v4  ; v4 = -0.0
+; }
 
 function %f16_fmin_zero_2() -> f16 {
 block0:
@@ -432,8 +552,11 @@ block0:
     return v3
 }
 
-; check: v4 = f16const -0.0
-; check: return v4  ; v4 = -0.0
+; function %f16_fmin_zero_2() -> f16 fast {
+; block0:
+;     v4 = f16const -0.0
+;     return v4  ; v4 = -0.0
+; }
 
 function %f16_fmin_promotes_correctly() -> f64 {
 block0:
@@ -444,9 +567,12 @@ block0:
     return v4
 }
 
-; check: v5 = f16const 0x1.000p0
-; check: v4 = fpromote.f64 v5  ; v5 = 0x1.000p0
-; check: return v4
+; function %f16_fmin_promotes_correctly() -> f64 fast {
+; block0:
+;     v5 = f16const 0x1.000p0
+;     v4 = fpromote.f64 v5  ; v5 = 0x1.000p0
+;     return v4
+; }
 
 function %f16_fmax() -> f16 {
 block0:
@@ -456,8 +582,11 @@ block0:
     return v3
 }
 
-; check: v4 = f16const -0x1.500p6
-; check: return v4  ; v4 = -0x1.500p6
+; function %f16_fmax() -> f16 fast {
+; block0:
+;     v4 = f16const -0x1.500p6
+;     return v4  ; v4 = -0x1.500p6
+; }
 
 function %f16_fmax_zero_1() -> f16 {
 block0:
@@ -467,8 +596,11 @@ block0:
     return v3
 }
 
-; check: v4 = f16const 0.0
-; check: return v4  ; v4 = 0.0
+; function %f16_fmax_zero_1() -> f16 fast {
+; block0:
+;     v4 = f16const 0.0
+;     return v4  ; v4 = 0.0
+; }
 
 function %f16_fmax_zero_2() -> f16 {
 block0:
@@ -478,8 +610,11 @@ block0:
     return v3
 }
 
-; check: v4 = f16const 0.0
-; check: return v4  ; v4 = 0.0
+; function %f16_fmax_zero_2() -> f16 fast {
+; block0:
+;     v4 = f16const 0.0
+;     return v4  ; v4 = 0.0
+; }
 
 function %f16_fneg() -> f16 {
 block0:
@@ -488,8 +623,11 @@ block0:
     return v2
 }
 
-; check: v3 = f16const -0.0
-; check: return v3  ; v3 = -0.0
+; function %f16_fneg() -> f16 fast {
+; block0:
+;     v3 = f16const -0.0
+;     return v3  ; v3 = -0.0
+; }
 
 function %f16_fabs() -> f16 {
 block0:
@@ -498,8 +636,11 @@ block0:
     return v2
 }
 
-; check: v3 = f16const 0.0
-; check: return v3  ; v3 = 0.0
+; function %f16_fabs() -> f16 fast {
+; block0:
+;     v3 = f16const 0.0
+;     return v3  ; v3 = 0.0
+; }
 
 function %f16_fcopysign() -> f16 {
 block0:
@@ -509,8 +650,11 @@ block0:
     return v3
 }
 
-; check: v4 = f16const -NaN
-; check: return v4  ; v4 = -NaN
+; function %f16_fcopysign() -> f16 fast {
+; block0:
+;     v4 = f16const -NaN
+;     return v4  ; v4 = -NaN
+; }
 
 function %f32_fadd() -> f32 {
 block0:
@@ -520,8 +664,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const 0x1.440000p4
-; check: return v4  ; v4 = 0x1.440000p4
+; function %f32_fadd() -> f32 fast {
+; block0:
+;     v4 = f32const 0x1.440000p4
+;     return v4  ; v4 = 0x1.440000p4
+; }
 
 function %f32_fsub() -> f32 {
 block0:
@@ -531,8 +678,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const -0x1.300000p2
-; check: return v4  ; v4 = -0x1.300000p2
+; function %f32_fsub() -> f32 fast {
+; block0:
+;     v4 = f32const -0x1.300000p2
+;     return v4  ; v4 = -0x1.300000p2
+; }
 
 function %f32_fmul() -> f32 {
 block0:
@@ -542,8 +692,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const 0x1.838000p6
-; check: return v4  ; v4 = 0x1.838000p6
+; function %f32_fmul() -> f32 fast {
+; block0:
+;     v4 = f32const 0x1.838000p6
+;     return v4  ; v4 = 0x1.838000p6
+; }
 
 function %f32_fdiv() -> f32 {
 block0:
@@ -553,8 +706,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const 0x1.000000p2
-; check: return v4  ; v4 = 0x1.000000p2
+; function %f32_fdiv() -> f32 fast {
+; block0:
+;     v4 = f32const 0x1.000000p2
+;     return v4  ; v4 = 0x1.000000p2
+; }
 
 function %f32_sqrt() -> f32 {
 block0:
@@ -563,8 +719,11 @@ block0:
     return v2
 }
 
-; check: v3 = f32const 0x1.400000p2
-; check: return v3  ; v3 = 0x1.400000p2
+; function %f32_sqrt() -> f32 fast {
+; block0:
+;     v3 = f32const 0x1.400000p2
+;     return v3  ; v3 = 0x1.400000p2
+; }
 
 function %f32_ceil() -> f32 {
 block0:
@@ -573,8 +732,11 @@ block0:
     return v2
 }
 
-; check: v3 = f32const -0x1.800000p3
-; check: return v3  ; v3 = -0x1.800000p3
+; function %f32_ceil() -> f32 fast {
+; block0:
+;     v3 = f32const -0x1.800000p3
+;     return v3  ; v3 = -0x1.800000p3
+; }
 
 function %f32_floor() -> f32 {
 block0:
@@ -583,8 +745,11 @@ block0:
     return v2
 }
 
-; check: v3 = f32const -0x1.a00000p3
-; check: return v3  ; v3 = -0x1.a00000p3
+; function %f32_floor() -> f32 fast {
+; block0:
+;     v3 = f32const -0x1.a00000p3
+;     return v3  ; v3 = -0x1.a00000p3
+; }
 
 function %f32_trunc() -> f32 {
 block0:
@@ -593,8 +758,11 @@ block0:
     return v2
 }
 
-; check: v3 = f32const 0x1.800000p3
-; check: return v3  ; v3 = 0x1.800000p3
+; function %f32_trunc() -> f32 fast {
+; block0:
+;     v3 = f32const 0x1.800000p3
+;     return v3  ; v3 = 0x1.800000p3
+; }
 
 function %f32_nearest() -> f32 {
 block0:
@@ -603,8 +771,11 @@ block0:
     return v2
 }
 
-; check: v3 = f32const 0x1.800000p3
-; check: return v3  ; v3 = 0x1.800000p3
+; function %f32_nearest() -> f32 fast {
+; block0:
+;     v3 = f32const 0x1.800000p3
+;     return v3  ; v3 = 0x1.800000p3
+; }
 
 function %f32_fmin() -> f32 {
 block0:
@@ -614,8 +785,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const 0x1.500000p6
-; check: return v4  ; v4 = 0x1.500000p6
+; function %f32_fmin() -> f32 fast {
+; block0:
+;     v4 = f32const 0x1.500000p6
+;     return v4  ; v4 = 0x1.500000p6
+; }
 
 function %f32_fmin_zero_1() -> f32 {
 block0:
@@ -625,8 +799,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const -0.0
-; check: return v4  ; v4 = -0.0
+; function %f32_fmin_zero_1() -> f32 fast {
+; block0:
+;     v4 = f32const -0.0
+;     return v4  ; v4 = -0.0
+; }
 
 function %f32_fmin_zero_2() -> f32 {
 block0:
@@ -636,8 +813,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const -0.0
-; check: return v4  ; v4 = -0.0
+; function %f32_fmin_zero_2() -> f32 fast {
+; block0:
+;     v4 = f32const -0.0
+;     return v4  ; v4 = -0.0
+; }
 
 function %f32_fmax() -> f32 {
 block0:
@@ -647,8 +827,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const 0x1.500000p7
-; check: return v4  ; v4 = 0x1.500000p7
+; function %f32_fmax() -> f32 fast {
+; block0:
+;     v4 = f32const 0x1.500000p7
+;     return v4  ; v4 = 0x1.500000p7
+; }
 
 function %f32_fmax_zero_1() -> f32 {
 block0:
@@ -658,8 +841,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const 0.0
-; check: return v4  ; v4 = 0.0
+; function %f32_fmax_zero_1() -> f32 fast {
+; block0:
+;     v4 = f32const 0.0
+;     return v4  ; v4 = 0.0
+; }
 
 function %f32_fmax_zero_2() -> f32 {
 block0:
@@ -669,8 +855,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const 0.0
-; check: return v4  ; v4 = 0.0
+; function %f32_fmax_zero_2() -> f32 fast {
+; block0:
+;     v4 = f32const 0.0
+;     return v4  ; v4 = 0.0
+; }
 
 function %f32_fneg() -> f32 {
 block0:
@@ -679,8 +868,11 @@ block0:
     return v2
 }
 
-; check: v3 = f32const -0.0
-; check: return v3  ; v3 = -0.0
+; function %f32_fneg() -> f32 fast {
+; block0:
+;     v3 = f32const -0.0
+;     return v3  ; v3 = -0.0
+; }
 
 function %f32_fabs() -> f32 {
 block0:
@@ -689,8 +881,11 @@ block0:
     return v2
 }
 
-; check: v3 = f32const 0.0
-; check: return v3  ; v3 = 0.0
+; function %f32_fabs() -> f32 fast {
+; block0:
+;     v3 = f32const 0.0
+;     return v3  ; v3 = 0.0
+; }
 
 function %f32_fcopysign() -> f32 {
 block0:
@@ -700,8 +895,11 @@ block0:
     return v3
 }
 
-; check: v4 = f32const -NaN
-; check: return v4  ; v4 = -NaN
+; function %f32_fcopysign() -> f32 fast {
+; block0:
+;     v4 = f32const -NaN
+;     return v4  ; v4 = -NaN
+; }
 
 function %f64_fadd() -> f64 {
 block0:
@@ -711,8 +909,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const 0x1.4400000000000p4
-; check: return v4  ; v4 = 0x1.4400000000000p4
+; function %f64_fadd() -> f64 fast {
+; block0:
+;     v4 = f64const 0x1.4400000000000p4
+;     return v4  ; v4 = 0x1.4400000000000p4
+; }
 
 function %f64_fsub() -> f64 {
 block0:
@@ -722,8 +923,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const -0x1.3000000000000p2
-; check: return v4  ; v4 = -0x1.3000000000000p2
+; function %f64_fsub() -> f64 fast {
+; block0:
+;     v4 = f64const -0x1.3000000000000p2
+;     return v4  ; v4 = -0x1.3000000000000p2
+; }
 
 function %f64_fmul() -> f64 {
 block0:
@@ -733,8 +937,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const 0x1.8380000000000p6
-; check: return v4  ; v4 = 0x1.8380000000000p6
+; function %f64_fmul() -> f64 fast {
+; block0:
+;     v4 = f64const 0x1.8380000000000p6
+;     return v4  ; v4 = 0x1.8380000000000p6
+; }
 
 function %f64_fdiv() -> f64 {
 block0:
@@ -744,8 +951,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const 0x1.0000000000000p2
-; check: return v4  ; v4 = 0x1.0000000000000p2
+; function %f64_fdiv() -> f64 fast {
+; block0:
+;     v4 = f64const 0x1.0000000000000p2
+;     return v4  ; v4 = 0x1.0000000000000p2
+; }
 
 function %f64_sqrt() -> f64 {
 block0:
@@ -754,8 +964,11 @@ block0:
     return v2
 }
 
-; check: v3 = f64const 0x1.4000000000000p2
-; check: return v3  ; v3 = 0x1.4000000000000p2
+; function %f64_sqrt() -> f64 fast {
+; block0:
+;     v3 = f64const 0x1.4000000000000p2
+;     return v3  ; v3 = 0x1.4000000000000p2
+; }
 
 function %f64_ceil() -> f64 {
 block0:
@@ -764,8 +977,11 @@ block0:
     return v2
 }
 
-; check: v3 = f64const 0x1.a000000000000p3
-; check: return v3  ; v3 = 0x1.a000000000000p3
+; function %f64_ceil() -> f64 fast {
+; block0:
+;     v3 = f64const 0x1.a000000000000p3
+;     return v3  ; v3 = 0x1.a000000000000p3
+; }
 
 function %f64_floor() -> f64 {
 block0:
@@ -774,8 +990,11 @@ block0:
     return v2
 }
 
-; check: v3 = f64const 0x1.8000000000000p3
-; check: return v3  ; v3 = 0x1.8000000000000p3
+; function %f64_floor() -> f64 fast {
+; block0:
+;     v3 = f64const 0x1.8000000000000p3
+;     return v3  ; v3 = 0x1.8000000000000p3
+; }
 
 function %f64_trunc() -> f64 {
 block0:
@@ -784,8 +1003,11 @@ block0:
     return v2
 }
 
-; check: v3 = f64const 0x1.8000000000000p3
-; check: return v3  ; v3 = 0x1.8000000000000p3
+; function %f64_trunc() -> f64 fast {
+; block0:
+;     v3 = f64const 0x1.8000000000000p3
+;     return v3  ; v3 = 0x1.8000000000000p3
+; }
 
 function %f64_nearest() -> f64 {
 block0:
@@ -794,8 +1016,11 @@ block0:
     return v2
 }
 
-; check: v3 = f64const 0x1.8000000000000p3
-; check: return v3  ; v3 = 0x1.8000000000000p3
+; function %f64_nearest() -> f64 fast {
+; block0:
+;     v3 = f64const 0x1.8000000000000p3
+;     return v3  ; v3 = 0x1.8000000000000p3
+; }
 
 function %f64_fmin() -> f64 {
 block0:
@@ -805,8 +1030,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const -0x1.5000000000000p7
-; check: return v4  ; v4 = -0x1.5000000000000p7
+; function %f64_fmin() -> f64 fast {
+; block0:
+;     v4 = f64const -0x1.5000000000000p7
+;     return v4  ; v4 = -0x1.5000000000000p7
+; }
 
 function %f64_fmin_zero_1() -> f64 {
 block0:
@@ -816,8 +1044,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const -0.0
-; check: return v4  ; v4 = -0.0
+; function %f64_fmin_zero_1() -> f64 fast {
+; block0:
+;     v4 = f64const -0.0
+;     return v4  ; v4 = -0.0
+; }
 
 function %f64_fmin_zero_2() -> f64 {
 block0:
@@ -827,8 +1058,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const -0.0
-; check: return v4  ; v4 = -0.0
+; function %f64_fmin_zero_2() -> f64 fast {
+; block0:
+;     v4 = f64const -0.0
+;     return v4  ; v4 = -0.0
+; }
 
 function %f64_fmax() -> f64 {
 block0:
@@ -838,8 +1072,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const -0x1.5000000000000p6
-; check: return v4  ; v4 = -0x1.5000000000000p6
+; function %f64_fmax() -> f64 fast {
+; block0:
+;     v4 = f64const -0x1.5000000000000p6
+;     return v4  ; v4 = -0x1.5000000000000p6
+; }
 
 function %f64_fmax_zero_1() -> f64 {
 block0:
@@ -849,8 +1086,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const 0.0
-; check: return v4  ; v4 = 0.0
+; function %f64_fmax_zero_1() -> f64 fast {
+; block0:
+;     v4 = f64const 0.0
+;     return v4  ; v4 = 0.0
+; }
 
 function %f64_fmax_zero_2() -> f64 {
 block0:
@@ -860,8 +1100,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const 0.0
-; check: return v4  ; v4 = 0.0
+; function %f64_fmax_zero_2() -> f64 fast {
+; block0:
+;     v4 = f64const 0.0
+;     return v4  ; v4 = 0.0
+; }
 
 function %f64_fneg() -> f64 {
 block0:
@@ -870,8 +1113,11 @@ block0:
     return v2
 }
 
-; check: v3 = f64const -0.0
-; check: return v3  ; v3 = -0.0
+; function %f64_fneg() -> f64 fast {
+; block0:
+;     v3 = f64const -0.0
+;     return v3  ; v3 = -0.0
+; }
 
 function %f64_fabs() -> f64 {
 block0:
@@ -880,8 +1126,11 @@ block0:
     return v2
 }
 
-; check: v3 = f64const 0.0
-; check: return v3  ; v3 = 0.0
+; function %f64_fabs() -> f64 fast {
+; block0:
+;     v3 = f64const 0.0
+;     return v3  ; v3 = 0.0
+; }
 
 function %f64_fcopysign() -> f64 {
 block0:
@@ -891,8 +1140,11 @@ block0:
     return v3
 }
 
-; check: v4 = f64const -NaN
-; check: return v4  ; v4 = -NaN
+; function %f64_fcopysign() -> f64 fast {
+; block0:
+;     v4 = f64const -NaN
+;     return v4  ; v4 = -NaN
+; }
 
 function %f128_fmin() -> f128 {
 block0:
@@ -902,9 +1154,14 @@ block0:
     return v3
 }
 
-; check: const0 = 0x40055000000000000000000000000000
-; check: v4 = f128const const0
-; check: return v4  ; v4 = 0x1.5000000000000000000000000000p6
+; function %f128_fmin() -> f128 fast {
+;     const0 = 0x40055000000000000000000000000000
+;     const1 = 0x40065000000000000000000000000000
+;
+; block0:
+;     v4 = f128const const0
+;     return v4  ; v4 = 0x1.5000000000000000000000000000p6
+; }
 
 function %f128_fmin_zero_1() -> f128 {
 block0:
@@ -914,9 +1171,14 @@ block0:
     return v3
 }
 
-; check: const1 = 0x80000000000000000000000000000000
-; check: v4 = f128const const1
-; check: return v4  ; v4 = -0.0
+; function %f128_fmin_zero_1() -> f128 fast {
+;     const0 = 0x00000000000000000000000000000000
+;     const1 = 0x80000000000000000000000000000000
+;
+; block0:
+;     v4 = f128const const1
+;     return v4  ; v4 = -0.0
+; }
 
 function %f128_fmin_zero_2() -> f128 {
 block0:
@@ -926,9 +1188,14 @@ block0:
     return v3
 }
 
-; check: const0 = 0x80000000000000000000000000000000
-; check: v4 = f128const const0
-; check: return v4  ; v4 = -0.0
+; function %f128_fmin_zero_2() -> f128 fast {
+;     const0 = 0x80000000000000000000000000000000
+;     const1 = 0x00000000000000000000000000000000
+;
+; block0:
+;     v4 = f128const const0
+;     return v4  ; v4 = -0.0
+; }
 
 function %f128_fmax() -> f128 {
 block0:
@@ -938,9 +1205,14 @@ block0:
     return v3
 }
 
-; check: const1 = 0x40065000000000000000000000000000
-; check: v4 = f128const const1
-; check: return v4  ; v4 = 0x1.5000000000000000000000000000p7
+; function %f128_fmax() -> f128 fast {
+;     const0 = 0x40055000000000000000000000000000
+;     const1 = 0x40065000000000000000000000000000
+;
+; block0:
+;     v4 = f128const const1
+;     return v4  ; v4 = 0x1.5000000000000000000000000000p7
+; }
 
 function %f128_fmax_zero_1() -> f128 {
 block0:
@@ -950,9 +1222,14 @@ block0:
     return v3
 }
 
-; check: const0 = 0x00000000000000000000000000000000
-; check: v4 = f128const const0
-; check: return v4  ; v4 = 0.0
+; function %f128_fmax_zero_1() -> f128 fast {
+;     const0 = 0x00000000000000000000000000000000
+;     const1 = 0x80000000000000000000000000000000
+;
+; block0:
+;     v4 = f128const const0
+;     return v4  ; v4 = 0.0
+; }
 
 function %f128_fmax_zero_2() -> f128 {
 block0:
@@ -962,9 +1239,14 @@ block0:
     return v3
 }
 
-; check: const1 = 0x00000000000000000000000000000000
-; check: v4 = f128const const1
-; check: return v4  ; v4 = 0.0
+; function %f128_fmax_zero_2() -> f128 fast {
+;     const0 = 0x80000000000000000000000000000000
+;     const1 = 0x00000000000000000000000000000000
+;
+; block0:
+;     v4 = f128const const1
+;     return v4  ; v4 = 0.0
+; }
 
 function %f128_fneg() -> f128 {
 block0:
@@ -973,9 +1255,14 @@ block0:
     return v2
 }
 
-; check: const1 = 0x80000000000000000000000000000000
-; check: v3 = f128const const1
-; check: return v3  ; v3 = -0.0
+; function %f128_fneg() -> f128 fast {
+;     const0 = 0x00000000000000000000000000000000
+;     const1 = 0x80000000000000000000000000000000
+;
+; block0:
+;     v3 = f128const const1
+;     return v3  ; v3 = -0.0
+; }
 
 function %f128_fabs() -> f128 {
 block0:
@@ -984,9 +1271,14 @@ block0:
     return v2
 }
 
-; check: const1 = 0x00000000000000000000000000000000
-; check: v3 = f128const const1
-; check: return v3  ; v3 = 0.0
+; function %f128_fabs() -> f128 fast {
+;     const0 = 0x80000000000000000000000000000000
+;     const1 = 0x00000000000000000000000000000000
+;
+; block0:
+;     v3 = f128const const1
+;     return v3  ; v3 = 0.0
+; }
 
 function %f128_fcopysign() -> f128 {
 block0:
@@ -996,6 +1288,13 @@ block0:
     return v3
 }
 
-; check: const2 = 0xffff8000000000000000000000000000
-; check: v4 = f128const const2
-; check: return v4  ; v4 = -NaN
+; function %f128_fcopysign() -> f128 fast {
+;     const0 = 0x80000000000000000000000000000000
+;     const1 = 0x7fff8000000000000000000000000000
+;     const2 = 0xffff8000000000000000000000000000
+;
+; block0:
+;     v4 = f128const const2
+;     return v4  ; v4 = -NaN
+; }
+
