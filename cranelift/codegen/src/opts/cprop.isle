@@ -91,37 +91,6 @@
                       (iconst _ k2)))
       (subsume (iconst ty (imm64_sshr ty k1 k2))))
 
-(rule (simplify (rotr (fits_in_64 ty)
-                      (iconst ty k1)
-                      (iconst _  k2)))
-      (subsume (iconst ty (imm64_rotr ty k1 k2))))
-
-(rule (simplify (rotl (fits_in_64 ty)
-                      (iconst ty k1)
-                      (iconst _  k2)))
-      (subsume (iconst ty (imm64_rotl ty k1 k2))))
-
-(rule (simplify (umin (fits_in_64 ty)
-             (iconst ty k1)
-             (iconst ty k2)))
-      (subsume (iconst ty (imm64_umin ty k1 k2))))
-
-(rule (simplify (umax (fits_in_64 ty)
-             (iconst ty k1)
-             (iconst ty k2)))
-      (subsume (iconst ty (imm64_umax ty k1 k2))))
-
-(rule (simplify (smin (fits_in_64 ty)
-             (iconst ty k1)
-             (iconst ty k2)))
-      (subsume (iconst ty (imm64_smin ty k1 k2))))
-
-(rule (simplify (smax (fits_in_64 ty)
-             (iconst ty k1)
-             (iconst ty k2)))
-      (subsume (iconst ty (imm64_smax ty k1 k2))))
-
-
 (rule (simplify (ireduce narrow (iconst (fits_in_64 _) (u64_from_imm64 imm))))
       (subsume (iconst narrow (imm64_masked narrow imm))))
 
@@ -165,11 +134,6 @@
 (rule (simplify
        (bxor ty k @ (iconst ty _) x))
       (bxor ty x k))
-
-(rule (simplify (smin ty k @ (iconst ty _) x)) (smin ty x k))
-(rule (simplify (umin ty k @ (iconst ty _) x)) (umin ty x k))
-(rule (simplify (smax ty k @ (iconst ty _) x)) (smax ty x k))
-(rule (simplify (umax ty k @ (iconst ty _) x)) (umax ty x k))
 
 (rule (simplify
        (icmp ty cc k @ (iconst _ _) x))
@@ -229,18 +193,6 @@
 (rule (simplify (select ty (iconst_u _ 0) _ y))
       (subsume y))
 
-(rule (simplify
-       (umin ty (umin ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (umin ty x (umin ty k1 k2)))
-(rule (simplify
-       (umax ty (umax ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (umax ty x (umax ty k1 k2)))
-(rule (simplify
-       (smin ty (smin ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (smin ty x (smin ty k1 k2)))
-(rule (simplify
-       (smax ty (smax ty x k1 @ (iconst ty _)) k2 @ (iconst ty _)))
-      (smax ty x (smax ty k1 k2)))
 
 ;; Reassociate across `==`/`!=` when we can simplify a constant
 ;; `x + K1 == K2` --> `x == K2 - K1`
@@ -495,8 +447,3 @@
 (decl ieee128_constant (Ieee128) Constant)
 (extern constructor ieee128_constant ieee128_constant)
 (extern extractor ieee128_constant ieee128_constant_extractor)
-
-;; a special case of ~a = -a - 1
-;; ~(x + y) = -(x + y) - 1 = (~x) - y = (~x) + (-y)
-;; bnot pushed to the leaf so that it not only canonicalzes the IR but also folds the constant y into -y
-(rule (simplify (bnot (fits_in_64 ty) (iadd ty x (iconst ty y)))) (iadd ty (bnot ty x) (iconst ty (imm64_neg ty y))))
