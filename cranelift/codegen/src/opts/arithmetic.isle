@@ -1,0 +1,7 @@
+;; shootout-random fix
+;; There are arithmetic rules that cannot be transplanted by transopt
+
+(decl cmp_true (Type) Value)
+(rule 0 (cmp_true (ty_int ty)) (iconst_u ty 1))
+(rule 1 (cmp_true (ty_vec128 ty)) (iconst_s ty -1))
+
