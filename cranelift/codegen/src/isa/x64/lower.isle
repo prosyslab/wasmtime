@@ -64,7 +64,8 @@
 ;; For more details on this see the `emit.rs` logic to emit
 ;; `LoadEffectiveAddress`.
 (rule iadd_base_case_32_or_64_lea -5 (lower (has_type (ty_32_or_64 ty) (iadd _ x y)))
-      (x64_lea ty (to_amode_add (mem_flags_trusted) x y (zero_offset))))
+      ;; (x64_lea ty (to_amode_add (mem_flags_trusted) x y (zero_offset)))
+      (x64_add ty x y))
 
 ;; Higher-priority cases than the previous two where a load can be sunk into
 ;; the add instruction itself. Note that both operands are tested for
