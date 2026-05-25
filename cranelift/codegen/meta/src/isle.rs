@@ -115,6 +115,7 @@ pub fn get_isle_compilations(
                     src_opts.join("skeleton.isle"),
                     src_opts.join("spaceship.isle"),
                     src_opts.join("spectre.isle"),
+                    src_opts.join("transopt.isle"),
                     src_opts.join("vector.isle"),
                 ],
                 untracked_inputs: vec![numerics_isle.clone(), clif_opt_isle],
