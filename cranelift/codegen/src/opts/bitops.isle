@@ -35,8 +35,6 @@
 (rule (simplify (band (ty_int_vec128 ty) x (bnot ty x))) (subsume (iconst_u ty 0)))
 (rule (simplify (band (ty_int_vec128 ty) (bnot ty x) x)) (subsume (iconst_u ty 0)))
 
-;; (x & y) ^ (x ^ y) == x | y
-
 ;; not(not(x)) == x.
 (rule (simplify (bnot ty (bnot ty x))) (subsume x))
 
