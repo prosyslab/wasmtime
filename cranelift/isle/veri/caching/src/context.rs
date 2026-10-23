@@ -140,6 +140,11 @@ pub struct Context {
 }
 
 impl Context {
+    /// Commands currently in scope, excluding queries and popped frames.
+    pub fn commands(&self) -> impl Iterator<Item = SExpr> + '_ {
+        self.frames.iter().flatten().map(|cmd| cmd.expr)
+    }
+
     // --- raw command interface, mirroring `easy_smt::Context`.
 
     /// Directly send a command to the (logical) solver.

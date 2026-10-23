@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet, iter::zip};
 
-use anyhow::{Context as _, Error, Result, bail};
+use anyhow::{Context as _, Error, Result, bail, ensure};
 use cranelift_isle_veri_caching::{Context, Response, SExpr, SExprData};
 use num_bigint::BigUint;
 use num_traits::Num as _;
@@ -39,6 +39,15 @@ pub enum Verification {
     Success,
     Failure(Model),
     Unknown,
+}
+
+/// Constant assignments sought by an example-generation query.
+#[derive(Clone, Copy, Debug)]
+pub enum ExampleKind {
+    /// Some applicable execution violates the verification condition.
+    Negative,
+    /// Applicable, with no execution violating the verification condition.
+    Positive,
 }
 
 impl std::fmt::Display for Verification {
@@ -221,6 +230,111 @@ impl<'a> Solver<'a> {
         self.smt.pop()?;
 
         Ok(verdict)
+    }
+
+    /// Enumerate distinct tuples of constant values for inference examples.
+    ///
+    /// Positive queries require an applicable execution and universally exclude
+    /// counterexamples. All other declared constants, including encoding
+    /// auxiliaries, are quantified with their defining assertions in scope.
+    /// Solver uncertainty is an error, never a positive example.
+    pub fn example_models(
+        &mut self,
+        constants: &[ExprId],
+        kind: ExampleKind,
+        limit: usize,
+    ) -> Result<Vec<Vec<Const>>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+        ensure!(
+            self.ill_typed.is_empty(),
+            "cannot generate examples from ill-typed expressions"
+        );
+        let symbols: Vec<_> = constants.iter().map(|id| self.expr_atom(*id)).collect();
+        let assumptions = self.all(&self.conditions.assumptions);
+        let assertions = self.all(&self.conditions.assertions);
+        let query = match kind {
+            ExampleKind::Negative => self.smt.and(assumptions, self.smt.not(assertions)),
+            ExampleKind::Positive => {
+                let mut variables = Vec::new();
+                let mut definitions = Vec::new();
+                for command in self.smt.commands() {
+                    let Some(parts) = self.smt.get_list(command) else {
+                        continue;
+                    };
+                    match self.smt.get_atom(parts[0]) {
+                        Some("declare-const") if !symbols.contains(&parts[1]) => {
+                            variables
+                                .push((self.smt.get_atom(parts[1]).unwrap().to_owned(), parts[2]));
+                        }
+                        Some("declare-fun")
+                            if self.smt.get_list(parts[2]) == Some(&[])
+                                && !symbols.contains(&parts[1]) =>
+                        {
+                            variables
+                                .push((self.smt.get_atom(parts[1]).unwrap().to_owned(), parts[3]));
+                        }
+                        Some("assert") => {
+                            let mut expr = parts[1];
+                            if let Some(annotation) = self.smt.get_list(expr)
+                                && self.smt.get_atom(annotation[0]) == Some("!")
+                            {
+                                expr = annotation[1];
+                            }
+                            definitions.push(expr);
+                        }
+                        _ => {}
+                    }
+                }
+                definitions.push(assumptions);
+                let body = self.smt.imp(self.smt.and_many(definitions), assertions);
+                let valid = if variables.is_empty() {
+                    body
+                } else {
+                    self.smt.forall(variables, body)
+                };
+                self.smt.and(assumptions, valid)
+            }
+        };
+
+        self.smt.push()?;
+        let result = (|| {
+            self.smt.assert(query)?;
+            let mut models = Vec::new();
+            for _ in 0..limit {
+                match self.check()? {
+                    Response::Unsat => break,
+                    Response::Unknown => {
+                        bail!("solver returned unknown while generating {kind:?} examples")
+                    }
+                    Response::Sat => {}
+                }
+                let values = if symbols.is_empty() {
+                    Vec::new()
+                } else {
+                    self.smt.get_value(symbols.clone())?
+                };
+                models.push(
+                    values
+                        .iter()
+                        .map(|(_, value)| self.const_from_sexpr(*value))
+                        .collect::<Result<Vec<_>>>()?,
+                );
+                if values.is_empty() {
+                    break;
+                }
+                let same = self.smt.and_many(
+                    values
+                        .iter()
+                        .map(|(symbol, value)| self.smt.eq(*symbol, *value)),
+                );
+                self.smt.assert(self.smt.not(same))?;
+            }
+            Ok(models)
+        })();
+        self.smt.pop()?;
+        result
     }
 
     fn check(&mut self) -> Result<Response> {

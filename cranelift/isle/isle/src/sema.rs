@@ -1208,6 +1208,18 @@ impl Rule {
     /// that was returned from [RuleVisitor::add_expr] when that function was called on the rule's
     /// right-hand side.
     pub fn visit<V: RuleVisitor>(&self, visitor: &mut V, termenv: &TermEnv) -> V::Expr {
+        self.visit_with_bindings(visitor, termenv).0
+    }
+
+    /// Visit the rule and retain its source-variable bindings.
+    pub fn visit_with_bindings<V: RuleVisitor>(
+        &self,
+        visitor: &mut V,
+        termenv: &TermEnv,
+    ) -> (
+        V::Expr,
+        HashMap<VarId, <V::PatternVisitor as PatternVisitor>::PatternId>,
+    ) {
         let mut vars = HashMap::new();
 
         // Visit the pattern, starting from the root input value.
@@ -1225,7 +1237,8 @@ impl Rule {
         }
 
         // Visit the rule's right-hand side, making use of the bound variables from the pattern.
-        self.rhs.visit_in_rule(visitor, termenv, &vars)
+        let result = self.rhs.visit_in_rule(visitor, termenv, &vars);
+        (result, vars)
     }
 
     /// Identifier is a name or position for referring to the rule.

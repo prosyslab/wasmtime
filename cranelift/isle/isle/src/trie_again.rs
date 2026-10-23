@@ -218,6 +218,8 @@ pub enum Constraint {
 pub struct Rule {
     /// Identifier of the source rule.
     pub id: RuleId,
+    /// Source-variable bindings in this rule's binding namespace.
+    pub variables: HashMap<sema::VarId, BindingId>,
     /// Where was this rule defined?
     pub pos: Pos,
     /// All of these bindings must match the given constraints for this rule to apply. Note that
@@ -495,7 +497,9 @@ impl RuleSetBuilder {
         self.current_rule.pos = rule.pos;
         self.current_rule.prio = rule.prio;
         self.current_rule.name = rule.name;
-        self.current_rule.result = rule.visit(self, termenv);
+        let (result, variables) = rule.visit_with_bindings(self, termenv);
+        self.current_rule.result = result;
+        self.current_rule.variables = variables;
         if termenv.terms[rule.root_term.index()].is_partial() {
             self.current_rule.result = self.dedup_binding(Binding::MakeSome {
                 inner: self.current_rule.result,

@@ -770,6 +770,8 @@ pub struct Conditions {
     pub assumptions: Vec<ExprId>,
     pub assertions: Vec<ExprId>,
     pub variables: Vec<Variable>,
+    /// Symbolic values indexed by the expansion's binding IDs.
+    pub bindings: HashMap<BindingId, Symbolic>,
     pub state: Variables,
     pub calls: Vec<Call>,
     pub qualifiers: Vec<Qualifier>,
@@ -1103,6 +1105,7 @@ impl<'a> ConditionsBuilder<'a> {
         // Validate
         self.conditions.validate()?;
 
+        self.conditions.bindings = self.binding_value;
         Ok(self.conditions)
     }
 

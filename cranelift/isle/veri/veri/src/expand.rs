@@ -2,7 +2,7 @@ use crate::{program::Program, reachability::Reachability};
 use anyhow::{Result, bail, format_err};
 use cranelift_isle::{
     disjointsets::DisjointSets,
-    sema::{RuleId, TermId},
+    sema::{RuleId, TermId, VarId},
     trie_again::{Binding, BindingId, Constraint, Rule, RuleSet},
 };
 use std::collections::{HashMap, HashSet};
@@ -40,6 +40,8 @@ impl Constrain {
 pub struct Expansion {
     pub term: TermId,
     pub rules: Vec<RuleId>,
+    /// Source-variable bindings for each entry in `rules`.
+    pub rule_variables: Vec<HashMap<VarId, BindingId>>,
     pub negated: Vec<RuleId>,
     pub bindings: Vec<Option<Binding>>,
     pub constraints: Vec<Constrain>,
@@ -216,6 +218,12 @@ impl Expansion {
 
         // Result.
         self.result = reindex.id(self.result);
+
+        for variables in &mut self.rule_variables {
+            for binding in variables.values_mut() {
+                *binding = reindex.id(*binding);
+            }
+        }
 
         // Equals.
         //
@@ -447,6 +455,8 @@ pub struct Expander<'a> {
     /// Whether to drop expansions as soon as they are deemed to be infeasible.
     prune_infeasible: bool,
 
+    retained_variables: HashMap<RuleId, Vec<VarId>>,
+
     /// Expansions under construction.
     stack: Vec<Partial>,
 
@@ -468,6 +478,7 @@ impl<'a> Expander<'a> {
             term_rule_sets,
             chaining,
             prune_infeasible: true,
+            retained_variables: HashMap::new(),
             stack: Vec::new(),
             roots: HashSet::new(),
             complete: Vec::new(),
@@ -534,6 +545,7 @@ impl<'a> Expander<'a> {
         let expansion = Expansion {
             term: term_id,
             rules: Vec::new(),
+            rule_variables: Vec::new(),
             negated: Vec::new(),
             bindings,
             constraints: Vec::new(),
@@ -552,6 +564,11 @@ impl<'a> Expander<'a> {
     /// be dropped as soon as they are deemed to be not feasible.
     pub fn set_prune_infeasible(&mut self, enabled: bool) {
         self.prune_infeasible = enabled;
+    }
+
+    /// Retain selected source-variable bindings, even when otherwise unused.
+    pub fn retain_rule_variables(&mut self, rule: RuleId, variables: &[VarId]) {
+        self.retained_variables.insert(rule, variables.to_vec());
     }
 
     fn finish(&mut self, expansion: Expansion) {
@@ -627,7 +644,12 @@ impl<'a> Expander<'a> {
         for rule in rule_set.rules.iter().rev() {
             // Apply rule.
             let mut apply = Application::new(expansion.clone());
-            apply.rule(rule_set, rule, parameters, chain_binding_id);
+            let variables = self
+                .retained_variables
+                .get(&rule.id)
+                .map(Vec::as_slice)
+                .unwrap_or(&[]);
+            apply.rule(rule_set, rule, parameters, chain_binding_id, variables);
 
             // Apply negations of higher-priority overlapping rules that are
             // tagged to indicate priority is significant.
@@ -696,9 +718,16 @@ impl Application {
         rule: &Rule,
         parameters: &[BindingId],
         call_site: BindingId,
+        retained_variables: &[VarId],
     ) {
         // Record the application of this rule.
         self.expansion.rules.push(rule.id);
+
+        let mut variables = HashMap::new();
+        for var in retained_variables {
+            variables.insert(*var, self.add_binding(rule_set, rule.variables[var]));
+        }
+        self.expansion.rule_variables.push(variables);
 
         // Arguments.
         for (i, parameter) in parameters.iter().enumerate() {
