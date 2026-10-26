@@ -237,7 +237,10 @@ impl<'a> Solver<'a> {
     /// Positive queries require an applicable execution and universally exclude
     /// counterexamples. All other declared constants, including encoding
     /// auxiliaries, are quantified with their defining assertions in scope.
-    /// Solver uncertainty is an error, never a positive example.
+    /// Uninterpreted functions with arguments are unsupported. Solver
+    /// uncertainty is an error, never a positive example.
+    ///
+    /// The caller is responsible for asking positive or negative examples
     pub fn example_models(
         &mut self,
         constants: &[ExprId],
@@ -254,39 +257,41 @@ impl<'a> Solver<'a> {
         let symbols: Vec<_> = constants.iter().map(|id| self.expr_atom(*id)).collect();
         let assumptions = self.all(&self.conditions.assumptions);
         let assertions = self.all(&self.conditions.assertions);
+        let mut variables = Vec::new();
+        let mut definitions = Vec::new();
+        for command in self.smt.commands() {
+            let Some(parts) = self.smt.get_list(command) else {
+                continue;
+            };
+            match self.smt.get_atom(parts[0]) {
+                Some("declare-const") if !symbols.contains(&parts[1]) => {
+                    variables.push((self.smt.get_atom(parts[1]).unwrap().to_owned(), parts[2]));
+                }
+                Some("declare-fun") => {
+                    ensure!(
+                        self.smt.get_list(parts[2]) == Some(&[]),
+                        "unsupported function in example generation: {}",
+                        self.smt.display(parts[1])
+                    );
+                    if !symbols.contains(&parts[1]) {
+                        variables.push((self.smt.get_atom(parts[1]).unwrap().to_owned(), parts[3]));
+                    }
+                }
+                Some("assert") => {
+                    let mut expr = parts[1];
+                    if let Some(annotation) = self.smt.get_list(expr)
+                        && self.smt.get_atom(annotation[0]) == Some("!")
+                    {
+                        expr = annotation[1];
+                    }
+                    definitions.push(expr);
+                }
+                _ => {}
+            }
+        }
         let query = match kind {
             ExampleKind::Negative => self.smt.and(assumptions, self.smt.not(assertions)),
             ExampleKind::Positive => {
-                let mut variables = Vec::new();
-                let mut definitions = Vec::new();
-                for command in self.smt.commands() {
-                    let Some(parts) = self.smt.get_list(command) else {
-                        continue;
-                    };
-                    match self.smt.get_atom(parts[0]) {
-                        Some("declare-const") if !symbols.contains(&parts[1]) => {
-                            variables
-                                .push((self.smt.get_atom(parts[1]).unwrap().to_owned(), parts[2]));
-                        }
-                        Some("declare-fun")
-                            if self.smt.get_list(parts[2]) == Some(&[])
-                                && !symbols.contains(&parts[1]) =>
-                        {
-                            variables
-                                .push((self.smt.get_atom(parts[1]).unwrap().to_owned(), parts[3]));
-                        }
-                        Some("assert") => {
-                            let mut expr = parts[1];
-                            if let Some(annotation) = self.smt.get_list(expr)
-                                && self.smt.get_atom(annotation[0]) == Some("!")
-                            {
-                                expr = annotation[1];
-                            }
-                            definitions.push(expr);
-                        }
-                        _ => {}
-                    }
-                }
                 definitions.push(assumptions);
                 let body = self.smt.imp(self.smt.and_many(definitions), assertions);
                 let valid = if variables.is_empty() {
