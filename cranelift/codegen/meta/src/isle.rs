@@ -135,6 +135,7 @@ pub fn get_isle_compilations(
         if cfg!(feature = "spec") {
             let spec_dir = codegen_crate_dir.join("src").join("spec");
             inputs.push(spec_dir.join("prelude_lower_spec.isle"));
+            inputs.push(spec_dir.join("trapping_lower.isle"));
         }
         inputs
     };

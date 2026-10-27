@@ -231,22 +231,13 @@
                 (= (concat result low) (bvmul xwide ywide))))))
 (instantiate umulhi bv_binary_8_to_64)
 
-(spec (udiv ty x y)
-    (modifies clif_trap)
-    (provide
-        (= result (bvudiv x y))
-        (= clif_trap (bv_is_zero! y))
-        (= (:bits ty) (widthof result))))
-(instantiate udiv bv_binary_8_to_64)
+(macro (udiv_semantics x y result trapped)
+    (and (= result (bvudiv x y)) (= trapped (bv_is_zero! y))))
 
-(spec (sdiv ty x y)
-    (modifies clif_trap)
-    (provide
-        ; Constrain the result width in all cases
-        (= (widthof result) (:bits ty))
+(macro (sdiv_semantics x y result trapped)
         ; If j2 is 0, then the result is undefined.
         (if (bv_is_zero! y)
-            clif_trap
+            trapped
         ; Else if j1 divided by j2 is 2^{N−1}, then the result is undefined.
         ;
         ; Note: the only way this can happen is the case (−2^{N−1})/(−1).
@@ -255,40 +246,31 @@
                 (= x (bv_top_bit_set! (widthof x)))
                 ; y is -1
                 (bv_is_zero! (bvnot y)))
-            clif_trap
+            trapped
         ; Else, return the result of dividing j1 by j2, truncated toward zero.
             (and
-                (not clif_trap)
-                (= result (bvsdiv x y)))))))
+                (not trapped)
+                (= result (bvsdiv x y))))))
 
-(instantiate sdiv bv_binary_8_to_64)
-(spec (urem ty x y)
-    (modifies clif_trap)
-    (provide
-        (= (:bits ty) (widthof result))
+(macro (urem_semantics x y result trapped)
         ; If i2 is 0, then the result is undefined.
         (if (bv_is_zero! y)
-            clif_trap
+            trapped
         ; Else, return the remainder of dividing i1 by i2.
             (and
-                (not clif_trap)
-                (= result (bvurem x y))))))
-(instantiate urem bv_binary_8_to_64)
+                (not trapped)
+                (= result (bvurem x y)))))
 
-(spec (srem ty x y)
-    (modifies clif_trap)
-    (provide
-        (= (:bits ty) (widthof result))
+(macro (srem_semantics x y result trapped)
         ; Let j1 be the signed interpretation of i1.
         ; Let j2 be the signed interpretation of i2.
         ; If i2 is 0, then the result is undefined.
         (if (bv_is_zero! y)
-            clif_trap
+            trapped
         ; Else, return the remainder of dividing j1 by j2, with the sign of the dividend j1.
             (and
-                (not clif_trap)
-                (= result (bvsrem x y))))))
-(instantiate srem bv_binary_8_to_64)
+                (not trapped)
+                (= result (bvsrem x y)))))
 
 ;; "Unsigned addition of x and y, trapping if the result overflows."
 ;; "Accepts 32 or 64-bit integers, and does not support vector types."

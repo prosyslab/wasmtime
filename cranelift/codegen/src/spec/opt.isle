@@ -721,3 +721,82 @@
 (attr u64_div (tag slow))
 (attr u64_rem (tag slow))
 (attr rule imul_ineg_const (tag slow))
+
+;;;; Partial constant folding helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(spec (u64_cast_signed x) (provide (= result x)))
+(spec (u64_truncate_into_u32 x) (provide (= result (extract 31 0 x))))
+(spec (i64_truncate_into_i32 x) (provide (= result (extract 31 0 x))))
+(spec (i32_cast_unsigned x) (provide (= result x)))
+(spec (u64_wrapping_shr x y)
+    (provide (= result (bvlshr x (zero_ext 64 (bvand y #x0000003f))))))
+(spec (i64_wrapping_shr x y)
+    (provide (= result (bvashr x (zero_ext 64 (bvand y #x0000003f))))))
+
+;; The condition's width is independent of the selected values' width.
+(spec (select ty c x y)
+    (provide (= (:bits ty) (widthof result))
+             (= result (if (bv_is_zero! c) y x))))
+
+;; Trapping optimizations match Inst terms whose two operands determine width.
+;; Reuse the instruction semantics shared with lowering's typed terms.
+(form opt_trapping_binary
+    ((args (bv 8) (bv 8)) (ret (bv 8)))
+    ((args (bv 16) (bv 16)) (ret (bv 16)))
+    ((args (bv 32) (bv 32)) (ret (bv 32)))
+    ((args (bv 64) (bv 64)) (ret (bv 64))))
+(spec (udiv x y) (modifies clif_trap) (provide (udiv_semantics! x y result clif_trap)))
+(instantiate udiv opt_trapping_binary)
+(spec (sdiv x y) (modifies clif_trap) (provide (sdiv_semantics! x y result clif_trap)))
+(instantiate sdiv opt_trapping_binary)
+(spec (urem x y) (modifies clif_trap) (provide (urem_semantics! x y result clif_trap)))
+(instantiate urem opt_trapping_binary)
+(spec (srem x y) (modifies clif_trap) (provide (srem_semantics! x y result clif_trap)))
+(instantiate srem opt_trapping_binary)
+
+;; Mirror isle_prelude.rs: operate at ty.bits(), return None on the native
+;; helper's failure cases, and keep successful Imm64 results zero-extended.
+(spec (imm64_udiv ty x y)
+    (match (<= (:bits ty) 64)
+           (not (bv_is_zero! (bvand y (mask! ty)))))
+    (provide (= result (bvudiv (bvand x (mask! ty)) (bvand y (mask! ty))))))
+(spec (imm64_urem ty x y)
+    (match (<= (:bits ty) 64)
+           (not (bv_is_zero! (bvand y (mask! ty)))))
+    (provide (= result (bvurem (bvand x (mask! ty)) (bvand y (mask! ty))))))
+(spec (imm64_sdiv ty x y)
+    (match (<= (:bits ty) 64)
+           (not (bv_is_zero! (bvand y (mask! ty))))
+           (not (and (= (bvand x (mask! ty)) (bvshl (int2bv 64 1) (bvsub (bits! ty) (int2bv 64 1))))
+                     (= (sext_ty! y ty) #xffffffffffffffff))))
+    (provide (= result (bvand (bvsdiv (sext_ty! x ty) (sext_ty! y ty)) (mask! ty)))))
+(spec (imm64_srem ty x y)
+    (match (<= (:bits ty) 64)
+           (not (bv_is_zero! (bvand y (mask! ty))))
+           ;; i64::checked_rem rejects only the 64-bit MIN % -1 overflow.
+           (not (and (= (sext_ty! x ty) #x8000000000000000)
+                     (= (sext_ty! y ty) #xffffffffffffffff))))
+    (provide (= result (bvand (bvsrem (sext_ty! x ty) (sext_ty! y ty)) (mask! ty)))))
+(spec (imm64_abs ty x)
+    (match (<= (:bits ty) 64)
+           (not (= (bvand x (mask! ty)) (bvshl (int2bv 64 1) (bvsub (bits! ty) (int2bv 64 1))))))
+    (provide (= result (bvand
+        (if (bvsge (sext_ty! x ty) (int2bv 64 0)) (sext_ty! x ty) (bvneg (sext_ty! x ty)))
+        (mask! ty)))))
+(spec (imm64_ilog2 ty x)
+    (match (<= (:bits ty) 64)
+           (not (bv_is_zero! (bvand x (mask! ty)))))
+    (provide (= result (bvsub (int2bv 64 63) (clz (bvand x (mask! ty)))))))
+
+;; The Inst model records the instruction's result bits and trap state.
+;; Only the replacement forms with modeled effects can currently be checked.
+(spec (simplify_skeleton x)
+    (provide (match result
+        ((Remove) (not clif_trap))
+        ((RemoveWithVal val) (and (not clif_trap) (= val x)))
+        ((Replace inst) (=> (not clif_trap) (= x inst)))
+        ((ReplaceWithVal inst val) (=> (not clif_trap) (and (= x inst) (= val x))))
+        ;; These actions need control-flow and memory models. Reject them;
+        ;; the equalities give their otherwise unused fields a concrete width.
+        ((ReplaceBranchCond cond) (and (= cond x) false))
+        ((ReplaceWithTwo first second) (and (= first x) (= second x) false))
+        ((RemoveDeadStore dead overwriter) (and (= dead x) (= overwriter x) false)))))
