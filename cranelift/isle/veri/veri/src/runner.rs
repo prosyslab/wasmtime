@@ -9,8 +9,10 @@ use std::{
 };
 
 use anyhow::{Context as _, Error, Result, bail, format_err};
-use cranelift_isle::sema::{Term, TermFlags, TermId, TermKind};
-use cranelift_isle::trie_again::RuleSet;
+use cranelift_isle::{
+    sema::{Term, TermId},
+    trie_again::RuleSet,
+};
 use cranelift_isle_veri_caching::{self as caching, Cache};
 use rayon::prelude::*;
 use serde::Serialize;
@@ -582,22 +584,6 @@ impl Runner {
             .get_rule_by_identifier(name)
             .ok_or_else(|| format_err!("unknown rule '{name}'"))?;
         let root_term = self.prog.term_name(rule.root_term).to_string();
-        // A specified multi root is a semantic boundary. Other rules for the same
-        // root cannot occur in a chain containing this candidate; avoid
-        // expanding them only to discard them through the filter below.
-        if self.prog.specenv.has_spec(rule.root_term)
-            && matches!(
-                self.prog.term(rule.root_term).kind,
-                TermKind::Decl {
-                    flags: TermFlags { multi: true, .. },
-                    ..
-                }
-            )
-        {
-            if let Some(rules) = self.term_rule_sets.get_mut(&rule.root_term) {
-                rules.rules.retain(|candidate| candidate.id == rule.id);
-            }
-        }
         self.root_term = Some(root_term);
         self.filter(Filter::exclude(ExpansionPredicate::Not(Box::new(
             ExpansionPredicate::ContainsRule(name.to_string()),
