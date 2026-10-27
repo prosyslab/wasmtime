@@ -538,6 +538,7 @@ pub struct Runner {
     results_to_log_dir: bool,
     print_counterexample: bool,
     debug: bool,
+    quiet: bool,
 
     /// Shared cache of SMT query results (None = no caching).
     cache: Option<Arc<Cache>>,
@@ -563,6 +564,7 @@ impl Runner {
             skip_solver: false,
             print_counterexample: false,
             debug: false,
+            quiet: false,
             cache: None,
         })
     }
@@ -644,6 +646,11 @@ impl Runner {
 
     pub fn set_results_to_log_dir(&mut self, enabled: bool) {
         self.results_to_log_dir = enabled;
+    }
+
+    /// Keep stdout free for callers that emit generated code.
+    pub fn set_quiet(&mut self, quiet: bool) {
+        self.quiet = quiet;
     }
 
     pub fn set_print_counterexample(&mut self, enabled: bool) {
@@ -738,7 +745,9 @@ impl Runner {
                 spec_conflicts,
                 ..Default::default()
             };
-            summary.print();
+            if !self.quiet {
+                summary.print();
+            }
             return Err(RunFailure {
                 summary,
                 verification_failures: 0,
@@ -1036,10 +1045,14 @@ impl Runner {
         // Print the funnel summary. Done here (rather than only on the success
         // path in the caller) so the breakdown is visible even when the run
         // fails below.
-        summary.print();
+        if !self.quiet {
+            summary.print();
+        }
 
         // Print cache stats if caching is enabled.
-        if let Some(cache) = &self.cache {
+        if let Some(cache) = &self.cache
+            && !self.quiet
+        {
             cache.print_stats();
         }
         // Verification failures, un-processable expansions and spec type
@@ -1189,7 +1202,7 @@ impl Runner {
         let start = time::Instant::now();
 
         // Results output.
-        let mut output: Box<dyn Write> = if self.results_to_log_dir {
+        let mut output: Box<dyn Write> = if self.results_to_log_dir || self.quiet {
             log::info!("#{id}\t{description}");
             Box::new(Self::open_log_file(log_dir.clone(), "results.out")?)
         } else {
