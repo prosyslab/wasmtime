@@ -1019,7 +1019,9 @@ impl Variables {
     }
 }
 
-struct ConditionsBuilder<'a> {
+/// Append pure matching clauses using the same specifications as whole-rule
+/// verification.
+pub struct ConditionsBuilder<'a> {
     /// Expansion under verification, absent when building the conditions for a
     /// single term in isolation.
     expansion: Option<&'a Expansion>,
@@ -1036,6 +1038,181 @@ struct ConditionsBuilder<'a> {
 }
 
 impl<'a> ConditionsBuilder<'a> {
+    /// Extend completed conditions with pure matching clauses. Existing IDs
+    /// stay valid, and new expressions are appended to the conditions.
+    pub fn resume(
+        conditions: Conditions,
+        context_term: TermId,
+        prog: &'a Program,
+        excluded_tags: &'a HashSet<String>,
+    ) -> Self {
+        let mut builder = Self::new(None, prog, excluded_tags);
+        builder.context_term = Some(context_term);
+        builder.expr_map = conditions
+            .exprs
+            .iter()
+            .cloned()
+            .enumerate()
+            .map(|(i, expr)| (expr, ExprId(i)))
+            .collect();
+        builder.conditions = conditions;
+        builder
+    }
+
+    pub fn conditions(&self) -> &Conditions {
+        &self.conditions
+    }
+
+    /// Append the conditions for a successful clause, preserving source IDs.
+    /// Clients checking concrete matching must inspect each intermediate before
+    /// appending constraints that consume its value.
+    pub fn match_clause(
+        &mut self,
+        clause: &sema::IfLet,
+        bindings: &mut HashMap<sema::VarId, Symbolic>,
+    ) -> Result<()> {
+        let value = self.match_expression(&clause.rhs, bindings)?;
+        self.match_pattern(&clause.lhs, value, bindings)
+    }
+
+    fn match_expression(
+        &mut self,
+        expression: &sema::Expr,
+        bindings: &HashMap<sema::VarId, Symbolic>,
+    ) -> Result<Symbolic> {
+        match expression {
+            sema::Expr::Var(_, id) => bindings
+                .get(id)
+                .cloned()
+                .ok_or_else(|| self.error(format!("unbound matching variable {id:?}"))),
+            sema::Expr::ConstBool(_, value) => Ok(self.boolean(*value).into()),
+            sema::Expr::ConstInt(ty, value) => {
+                let model = self.prog.specenv.type_model[ty]
+                    .as_primitive()
+                    .ok_or_else(|| self.error("constant must have a primitive model"))?;
+                Ok(self.spec_typed_value(*value, model)?.into())
+            }
+            sema::Expr::ConstPrim(_, value) => {
+                let value = self
+                    .prog
+                    .specenv
+                    .const_value
+                    .get(value)
+                    .ok_or_else(|| self.error("unspecified primitive constant"))?;
+                self.spec_expr_no_vars(value)
+            }
+            sema::Expr::Term(_, term, args) => {
+                let args = args
+                    .iter()
+                    .map(|arg| self.match_expression(arg, bindings))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(self
+                    .match_call(*term, TermKind::Constructor, &args)?
+                    .remove(0))
+            }
+            sema::Expr::Let {
+                bindings: locals,
+                body,
+                ..
+            } => {
+                let mut bindings = bindings.clone();
+                for (id, _, expression) in locals {
+                    let value = self.match_expression(expression, &bindings)?;
+                    bindings.insert(*id, value);
+                }
+                self.match_expression(body, &bindings)
+            }
+        }
+    }
+
+    fn match_pattern(
+        &mut self,
+        pattern: &sema::Pattern,
+        value: Symbolic,
+        bindings: &mut HashMap<sema::VarId, Symbolic>,
+    ) -> Result<()> {
+        let expected = match pattern {
+            sema::Pattern::BindPattern(_, id, inner) => {
+                bindings.insert(*id, value.clone());
+                return self.match_pattern(inner, value, bindings);
+            }
+            sema::Pattern::Wildcard(_) => return Ok(()),
+            sema::Pattern::And(_, patterns) => {
+                for pattern in patterns {
+                    self.match_pattern(pattern, value.clone(), bindings)?;
+                }
+                return Ok(());
+            }
+            sema::Pattern::Term(_, term, patterns) => {
+                let outputs = self.match_call(*term, TermKind::Extractor, &[value])?;
+                anyhow::ensure!(outputs.len() == patterns.len(), "extractor arity mismatch");
+                for (pattern, output) in patterns.iter().zip(outputs) {
+                    self.match_pattern(pattern, output, bindings)?;
+                }
+                return Ok(());
+            }
+            sema::Pattern::Var(ty, id) => sema::Expr::Var(*ty, *id),
+            sema::Pattern::ConstBool(ty, value) => sema::Expr::ConstBool(*ty, *value),
+            sema::Pattern::ConstInt(ty, value) => sema::Expr::ConstInt(*ty, *value),
+            sema::Pattern::ConstPrim(ty, value) => sema::Expr::ConstPrim(*ty, *value),
+        };
+        let expected = self.match_expression(&expected, bindings)?;
+        let equal = self.values_equal(value, expected)?;
+        self.conditions.assumptions.push(equal);
+        Ok(())
+    }
+
+    fn match_call(
+        &mut self,
+        term: TermId,
+        kind: TermKind,
+        inputs: &[Symbolic],
+    ) -> Result<Vec<Symbolic>> {
+        let term_data = self.prog.term(term);
+        let signature = match kind {
+            TermKind::Constructor => term_data.constructor_sig(&self.prog.tyenv),
+            TermKind::Extractor => term_data.extractor_sig(&self.prog.tyenv),
+        };
+        anyhow::ensure!(
+            signature.is_none_or(|signature| signature.ret_kind != sema::ReturnKind::Iterator),
+            "multi terms are unsupported in matching extensions"
+        );
+        let spec =
+            self.prog.specenv.term_spec.get(&term).ok_or_else(|| {
+                self.error(format!("no spec for term {}", self.prog.term_name(term)))
+            })?;
+        anyhow::ensure!(
+            spec.modifies.is_empty(),
+            "matching extension modifies state"
+        );
+        let output_types = match kind {
+            TermKind::Constructor => std::slice::from_ref(&term_data.ret_ty),
+            TermKind::Extractor => term_data.arg_tys.as_slice(),
+        };
+        let mut outputs = Vec::new();
+        for ty in output_types {
+            outputs
+                .push(self.alloc_model(*ty, format!("match{}", self.conditions.variables.len()))?);
+        }
+        let domain = if is_fallible(term_data, &self.prog.tyenv, kind) {
+            Domain::Partial(self.alloc_variable(Type::Bool, "matched".to_string()))
+        } else {
+            Domain::Total
+        };
+        let (args, ret) = match kind {
+            TermKind::Constructor => (inputs, outputs[0].clone()),
+            TermKind::Extractor => {
+                anyhow::ensure!(inputs.len() == 1, "extractor needs one input");
+                (outputs.as_slice(), inputs[0].clone())
+            }
+        };
+        self.call(term, kind, args, ret, Invocation::Caller, domain)?;
+        if let Domain::Partial(matched) = domain {
+            self.conditions.assumptions.push(matched);
+        }
+        Ok(outputs)
+    }
+
     fn new(
         expansion: Option<&'a Expansion>,
         prog: &'a Program,

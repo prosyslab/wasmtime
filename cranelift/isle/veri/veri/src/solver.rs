@@ -112,6 +112,38 @@ pub struct Solver<'a> {
     ill_typed: Vec<(ExprId, String)>,
 }
 
+/// Owned SMT state between append-only condition updates. It keeps temporary
+/// names and function declarations valid when the conditions are borrowed anew.
+pub struct Encoding {
+    pub context: Context,
+    dialect: Dialect,
+    tmp_idx: usize,
+    sqrt_uf_widths: HashSet<usize>,
+    ill_typed: Vec<(ExprId, String)>,
+}
+
+impl Encoding {
+    /// Borrow the extended conditions without restarting the SMT session.
+    /// Encode the new suffix before querying or detaching it again.
+    pub fn solver<'a>(
+        self,
+        prog: &'a Program,
+        conditions: &'a Conditions,
+        assignment: &'a Assignment,
+    ) -> Solver<'a> {
+        Solver {
+            smt: self.context,
+            dialect: self.dialect,
+            prog,
+            conditions,
+            assignment,
+            tmp_idx: self.tmp_idx,
+            sqrt_uf_widths: self.sqrt_uf_widths,
+            ill_typed: self.ill_typed,
+        }
+    }
+}
+
 impl Drop for Solver<'_> {
     fn drop(&mut self) {
         // Attempt clean exit.
@@ -156,8 +188,14 @@ impl<'a> Solver<'a> {
     }
 
     pub fn encode(&mut self) -> Result<()> {
+        self.encode_from(0)
+    }
+
+    /// Encode an appended suffix. Previously encoded expressions, their sorts,
+    /// and any known values used as widths must remain unchanged.
+    pub fn encode_from(&mut self, start: usize) -> Result<()> {
         // Expressions
-        for (i, expr) in self.conditions.exprs.iter().enumerate() {
+        for (i, expr) in self.conditions.exprs.iter().enumerate().skip(start) {
             let x = ExprId(i);
             self.declare_expr(x)?;
             if !expr.is_variable() {
@@ -169,13 +207,22 @@ impl<'a> Solver<'a> {
     }
 
     /// Transfer encoded expressions to a client preparing symbolic queries.
-    pub fn into_smt(mut self, expressions: &[ExprId]) -> Result<(Context, Vec<SExpr>)> {
+    pub fn into_encoding(mut self, expressions: &[ExprId]) -> Result<(Encoding, Vec<SExpr>)> {
         let expressions = expressions.iter().map(|id| self.expr_atom(*id)).collect();
         let context = std::mem::replace(
             &mut self.smt,
             cranelift_isle_veri_caching::ContextBuilder::new().build()?,
         );
-        Ok((context, expressions))
+        Ok((
+            Encoding {
+                context,
+                dialect: self.dialect,
+                tmp_idx: self.tmp_idx,
+                sqrt_uf_widths: std::mem::take(&mut self.sqrt_uf_widths),
+                ill_typed: std::mem::take(&mut self.ill_typed),
+            },
+            expressions,
+        ))
     }
 
     pub fn check_assumptions_feasibility(&mut self) -> Result<Applicability> {
