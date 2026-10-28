@@ -408,7 +408,8 @@ impl Context {
                 Some("push") | Some("pop") => Kind::Frame,
                 Some(
                     "check-sat" | "check-sat-using" | "check-sat-assuming" | "get-value"
-                    | "get-model" | "get-unsat-core" | "get-info" | "get-proof",
+                    | "get-model" | "get-unsat-core" | "get-info" | "get-proof" | "simplify"
+                    | "apply",
                 ) => Kind::Query,
                 Some("exit") => Kind::Exit,
                 _ => Kind::Ack,

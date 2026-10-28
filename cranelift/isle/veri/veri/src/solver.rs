@@ -168,6 +168,16 @@ impl<'a> Solver<'a> {
         Ok(())
     }
 
+    /// Transfer encoded expressions to a client preparing symbolic queries.
+    pub fn into_smt(mut self, expressions: &[ExprId]) -> Result<(Context, Vec<SExpr>)> {
+        let expressions = expressions.iter().map(|id| self.expr_atom(*id)).collect();
+        let context = std::mem::replace(
+            &mut self.smt,
+            cranelift_isle_veri_caching::ContextBuilder::new().build()?,
+        );
+        Ok((context, expressions))
+    }
+
     pub fn check_assumptions_feasibility(&mut self) -> Result<Applicability> {
         // Enter solver context frame.
         self.smt.push()?;
