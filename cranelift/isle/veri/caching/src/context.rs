@@ -139,10 +139,53 @@ pub struct Context {
     pending: Option<SExpr>,
 }
 
+/// Constants and constraints used to build quantified queries.
+pub struct SymbolicState {
+    pub declarations: Vec<(SExpr, SExpr)>,
+    pub assertions: Vec<SExpr>,
+}
+
 impl Context {
     /// Commands currently in scope, excluding queries and popped frames.
     pub fn commands(&self) -> impl Iterator<Item = SExpr> + '_ {
         self.frames.iter().flatten().map(|cmd| cmd.expr)
+    }
+
+    /// Read the current encoding, removing assertion annotations.
+    /// Functions with arguments cannot be quantified as constants.
+    pub fn symbolic_state(&self) -> io::Result<SymbolicState> {
+        let mut state = SymbolicState {
+            declarations: Vec::new(),
+            assertions: Vec::new(),
+        };
+        for command in self.commands() {
+            let Some(parts) = self.get_list(command) else {
+                continue;
+            };
+            match self.get_atom(parts[0]) {
+                Some("declare-const") => state.declarations.push((parts[1], parts[2])),
+                Some("declare-fun") if self.get_list(parts[2]) == Some(&[]) => {
+                    state.declarations.push((parts[1], parts[3]));
+                }
+                Some("declare-fun") => {
+                    return Err(io::Error::other(format!(
+                        "unsupported function in symbolic query: {}",
+                        self.display(parts[1])
+                    )));
+                }
+                Some("assert") => {
+                    let mut expression = parts[1];
+                    if let Some(annotation) = self.get_list(expression)
+                        && self.get_atom(annotation[0]) == Some("!")
+                    {
+                        expression = annotation[1];
+                    }
+                    state.assertions.push(expression);
+                }
+                _ => {}
+            }
+        }
+        Ok(state)
     }
 
     // --- raw command interface, mirroring `easy_smt::Context`.

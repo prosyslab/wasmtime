@@ -34,7 +34,7 @@ mod context;
 mod convert;
 
 pub use cache::{Cache, CacheMode};
-pub use context::{Context, ContextBuilder};
+pub use context::{Context, ContextBuilder, SymbolicState};
 
 // Re-export the easy-smt surface that clients use alongside the context, so
 // that switching to this crate is a pure import change.
