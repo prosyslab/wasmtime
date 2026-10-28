@@ -99,6 +99,7 @@ impl std::error::Error for IllTypedWidth {}
 pub struct Solver<'a> {
     smt: Context,
     dialect: Dialect,
+    check_tactic: Option<SExpr>,
     prog: &'a Program,
     conditions: &'a Conditions,
     assignment: &'a Assignment,
@@ -134,6 +135,7 @@ impl Encoding {
         Solver {
             smt: self.context,
             dialect: self.dialect,
+            check_tactic: None,
             prog,
             conditions,
             assignment,
@@ -161,6 +163,7 @@ impl<'a> Solver<'a> {
         let mut solver = Self {
             smt,
             dialect: Dialect::default(),
+            check_tactic: None,
             prog,
             conditions,
             assignment,
@@ -174,6 +177,12 @@ impl<'a> Solver<'a> {
 
     pub fn set_dialect(&mut self, dialect: Dialect) {
         self.dialect = dialect;
+    }
+
+    /// Override the Z3 tactic for this query. The expression must belong to
+    /// this solver's SMT context. Other dialects use standard check-sat.
+    pub fn set_check_tactic(&mut self, tactic: SExpr) {
+        self.check_tactic = Some(tactic);
     }
 
     fn prelude(&mut self) -> Result<()> {
@@ -379,7 +388,11 @@ impl<'a> Solver<'a> {
         // Send check-sat command. Prefer (check-sat-using default) for Z3.
         let cmd = self.smt.list(match self.dialect {
             Dialect::SMTLIB2 => vec![self.smt.atoms().check_sat],
-            Dialect::Z3 => vec![self.smt.atom("check-sat-using"), self.smt.atom("default")],
+            Dialect::Z3 => vec![
+                self.smt.atom("check-sat-using"),
+                self.check_tactic
+                    .unwrap_or_else(|| self.smt.atom("default")),
+            ],
         });
 
         self.smt.raw_send(cmd)?;
