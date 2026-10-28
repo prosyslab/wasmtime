@@ -21,8 +21,8 @@
 //!   into it to reconstruct the state, then the query is forwarded. The live
 //!   solver is kept only while the path grows monotonically (so a `get-value`
 //!   immediately after a missed `check-sat` does not re-solve); it is dropped
-//!   on `pop` rather than reusing internal solver state across context
-//!   frames.
+//!   on `pop` by default. Clients can opt into incremental solver reuse
+//!   with [`ContextBuilder::incremental`].
 //!
 //! The cache itself ([`Cache`]) is a directory of JSON files with an optional
 //! read-only source and a read-write destination, and supports a

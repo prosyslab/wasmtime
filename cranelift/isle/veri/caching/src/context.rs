@@ -24,6 +24,7 @@ pub struct ContextBuilder {
     solver_args: Vec<OsString>,
     replay_file: Option<Box<dyn io::Write + Send>>,
     cache: Option<Arc<Cache>>,
+    incremental: bool,
 }
 
 impl ContextBuilder {
@@ -69,6 +70,12 @@ impl ContextBuilder {
         self
     }
 
+    /// Keep the live solver across pops. Disabled by default.
+    pub fn incremental(&mut self, enabled: bool) -> &mut Self {
+        self.incremental = enabled;
+        self
+    }
+
     /// Finish configuring the context and build it. No solver is spawned.
     pub fn build(&mut self) -> io::Result<Context> {
         Ok(Context {
@@ -77,6 +84,7 @@ impl ContextBuilder {
             solver_args: std::mem::take(&mut self.solver_args),
             replay_file: self.replay_file.take().map(|w| Arc::new(Mutex::new(w))),
             cache: self.cache.take(),
+            incremental: self.incremental,
             frames: vec![Vec::new()],
             live: None,
             pending: None,
@@ -126,14 +134,16 @@ pub struct Context {
     replay_file: Option<Arc<Mutex<Box<dyn io::Write + Send>>>>,
     /// The query cache. `None` disables caching (every query misses).
     cache: Option<Arc<Cache>>,
+    /// Forward pops to the live solver instead of restarting it.
+    incremental: bool,
     /// The tree-path of commands: a stack of frames delimited by `push`/`pop`.
     /// `frames[0]` is the base frame; each later frame corresponds to an open
     /// `push`.
     frames: Vec<Vec<PathCmd>>,
     /// Live solver session, if one has been spawned by a cache miss. Its state
     /// always mirrors a replay of `frames`; it is dropped whenever that stops
-    /// being maintainable by appending (on `pop`, or when a query is answered
-    /// from the cache instead of being forwarded).
+    /// being maintainable by appending (on non-incremental `pop`, or when a
+    /// query is answered from the cache instead of being forwarded).
     live: Option<easy_smt::Context>,
     /// Response queued by `raw_send` for the next `raw_recv`.
     pending: Option<SExpr>,
@@ -489,9 +499,8 @@ impl Context {
 
     /// Handle a `pop`: discard the top `n` frames.
     ///
-    /// Any live solver is dropped: the caching layer deliberately does not
-    /// reuse internal solver state across a pop. A later miss respawns a
-    /// solver and replays the (now shorter) path.
+    /// By default a later miss respawns the solver and replays the shorter
+    /// path. Incremental clients instead forward the pop to the live solver.
     fn frame_pop(&mut self, n: usize) -> io::Result<SExpr> {
         if self.frames.len() <= n {
             return Err(io::Error::other(format!(
@@ -499,9 +508,17 @@ impl Context {
                 self.frames.len() - 1
             )));
         }
+        let response = if self.incremental && self.live.is_some() {
+            let command = self
+                .inner
+                .list(vec![self.inner.atoms().pop, self.inner.numeral(n)]);
+            self.forward(command)?
+        } else {
+            self.drop_live("pop");
+            self.inner.atoms().success
+        };
         self.frames.truncate(self.frames.len() - n);
-        self.drop_live("pop");
-        Ok(self.inner.atoms().success)
+        Ok(response)
     }
 
     /// Handle a query: serve from cache or from a (lazily spawned) solver.
@@ -862,31 +879,41 @@ done
     #[cfg(unix)]
     #[test]
     fn test_path_distinguishes_queries() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache = Arc::new(Cache::open(
-            None,
-            Some(dir.path().join("cache")),
-            CacheMode::ReadWrite,
-        ));
+        for incremental in [false, true] {
+            let dir = tempfile::tempdir().unwrap();
+            let replay = dir.path().join("replay.smt2");
+            let cache = Arc::new(Cache::open(
+                None,
+                Some(dir.path().join("cache")),
+                CacheMode::ReadWrite,
+            ));
 
-        let mut ctx = fake_solver(&mut ContextBuilder::new())
-            .cache(cache.clone())
-            .build()
-            .unwrap();
-        ctx.set_logic("ALL").unwrap();
-        ctx.push().unwrap();
-        ctx.assert(ctx.true_()).unwrap();
-        ctx.check().unwrap();
-        ctx.pop().unwrap();
-        ctx.push().unwrap();
-        ctx.assert(ctx.false_()).unwrap();
-        // Different frame contents: this is a distinct cacheable point, not a
-        // hit on the previous check.
-        ctx.check().unwrap();
-        ctx.exit().unwrap();
+            let mut ctx = fake_solver(&mut ContextBuilder::new())
+                .incremental(incremental)
+                .replay_file(Some(std::fs::File::create(&replay).unwrap()))
+                .cache(cache.clone())
+                .build()
+                .unwrap();
+            ctx.set_logic("ALL").unwrap();
+            ctx.push().unwrap();
+            ctx.assert(ctx.true_()).unwrap();
+            ctx.check().unwrap();
+            ctx.pop().unwrap();
+            ctx.push().unwrap();
+            ctx.assert(ctx.false_()).unwrap();
+            // Different frame contents: this is a distinct cacheable point, not a
+            // hit on the previous check.
+            ctx.check().unwrap();
+            ctx.exit().unwrap();
 
-        let (hits, misses, stores, _) = cache.snapshot_stats();
-        assert_eq!((hits, misses, stores), (0, 2, 2));
+            let (hits, misses, stores, _) = cache.snapshot_stats();
+            assert_eq!((hits, misses, stores), (0, 2, 2));
+            let replay = std::fs::read_to_string(replay).unwrap();
+            assert_eq!(
+                replay.matches("solver session start").count(),
+                if incremental { 1 } else { 2 }
+            );
+        }
     }
 
     /// A cache miss in read-only-enforcing mode is an error and does not
